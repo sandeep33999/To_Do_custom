@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auraflow-v3';
+const CACHE_NAME = 'zenrhythm-v1';
 const ASSETS = [
   './',
   './index.html',

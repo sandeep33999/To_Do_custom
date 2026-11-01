@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             } else {
                 backPressedTime = currentTime;
-                backToast = android.widget.Toast.makeText(MainActivity.this, "Press back again to exit AuraFlow", android.widget.Toast.LENGTH_SHORT);
+                backToast = android.widget.Toast.makeText(MainActivity.this, "Press back again to exit ZenRhythm", android.widget.Toast.LENGTH_SHORT);
                 backToast.show();
             }
         });

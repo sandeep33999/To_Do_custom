@@ -391,7 +391,7 @@ const ChronoStorage = {
   // Active Real-Time Sleep Session (for 1-tap "Sleep Now" -> "Wake Now")
   getActiveSleepSession() {
     try {
-      const raw = localStorage.getItem('auraflow_active_sleep_session');
+      const raw = localStorage.getItem('zenrhythm_active_sleep_session') || localStorage.getItem('auraflow_active_sleep_session');
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       return null;
@@ -400,9 +400,10 @@ const ChronoStorage = {
 
   setActiveSleepSession(session) {
     if (!session) {
+      localStorage.removeItem('zenrhythm_active_sleep_session');
       localStorage.removeItem('auraflow_active_sleep_session');
     } else {
-      localStorage.setItem('auraflow_active_sleep_session', JSON.stringify(session));
+      localStorage.setItem('zenrhythm_active_sleep_session', JSON.stringify(session));
     }
     window.dispatchEvent(new CustomEvent('chronoflow:sleep_session_updated', { detail: session }));
   },
@@ -410,7 +411,7 @@ const ChronoStorage = {
   // Free Buffer Time Custom Activity
   getBufferActivity(dateStr) {
     try {
-      const data = JSON.parse(localStorage.getItem('auraflow_buffer_activity') || '{}');
+      const data = JSON.parse(localStorage.getItem('zenrhythm_buffer_activity') || localStorage.getItem('auraflow_buffer_activity') || '{}');
       return data[dateStr] || 'Free buffer time / Relax';
     } catch (e) {
       return 'Free buffer time / Relax';
@@ -419,9 +420,9 @@ const ChronoStorage = {
 
   setBufferActivity(dateStr, activity) {
     try {
-      const data = JSON.parse(localStorage.getItem('auraflow_buffer_activity') || '{}');
+      const data = JSON.parse(localStorage.getItem('zenrhythm_buffer_activity') || '{}');
       data[dateStr] = activity;
-      localStorage.setItem('auraflow_buffer_activity', JSON.stringify(data));
+      localStorage.setItem('zenrhythm_buffer_activity', JSON.stringify(data));
       window.dispatchEvent(new CustomEvent('chronoflow:buffer_activity_updated', { detail: { date: dateStr, activity } }));
     } catch (e) {}
   },
@@ -472,7 +473,7 @@ const ChronoStorage = {
 
   getJournalEntries() {
     try {
-      const raw = localStorage.getItem('auraflow_journal_entries');
+      const raw = localStorage.getItem('zenrhythm_journal_entries') || localStorage.getItem('auraflow_journal_entries');
       if (raw) return JSON.parse(raw);
       // Migrate from existing daily reviews if any exist
       const reviews = this.getDailyReviews();
@@ -501,7 +502,7 @@ const ChronoStorage = {
     } else {
       entries.unshift(entry);
     }
-    localStorage.setItem('auraflow_journal_entries', JSON.stringify(entries));
+    localStorage.setItem('zenrhythm_journal_entries', JSON.stringify(entries));
     // Also save in daily reviews for review compatibility
     this.saveDailyReview(entry.date, { date: entry.date, notes: entry.notes, savedAt: entry.timestamp });
     window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
@@ -511,7 +512,7 @@ const ChronoStorage = {
   deleteJournalEntry(id) {
     let entries = this.getJournalEntries();
     entries = entries.filter(e => e.id !== id);
-    localStorage.setItem('auraflow_journal_entries', JSON.stringify(entries));
+    localStorage.setItem('zenrhythm_journal_entries', JSON.stringify(entries));
     window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
   },
 
@@ -561,3 +562,4 @@ const ChronoStorage = {
 
 window.ChronoStorage = ChronoStorage;
 window.AuraStorage = ChronoStorage;
+window.ZenStorage = ChronoStorage;

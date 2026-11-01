@@ -1,5 +1,5 @@
 /**
- * AuraFlow Main Application Controller
+ * ZenRhythm Main Application Controller
  * Handles UI interactions, live timers, view routing, modals,
  * Gaussian sleep curves, 1-tap sleep tracking, mission deadlines, and Android native bridge.
  */
@@ -978,7 +978,7 @@ const App = {
       if (btnWakeNow) btnWakeNow.classList.add('hidden');
       if (statusText) statusText.textContent = 'CURRENTLY AWAKE';
       if (headline) headline.textContent = 'Ready for rest tonight?';
-      if (subtext) subtext.textContent = 'Tap "Sleep Now" when you go to bed. AuraFlow will count your exact sleep duration.';
+      if (subtext) subtext.textContent = 'Tap "Sleep Now" when you go to bed. ZenRhythm will count your exact sleep duration.';
     }
   },
 
@@ -1817,7 +1817,7 @@ const App = {
         d.setHours(h, m, 0, 0);
         if (d.getTime() > Date.now()) {
           const alarmLabel = (isReminder ? '🔔 Reminder: ' : 'Upcoming Slot: ') + title;
-          window.AndroidNative.scheduleNativeAlarm(taskObj.id, alarmLabel, notes || 'Scheduled in AuraFlow', d.getTime());
+          window.AndroidNative.scheduleNativeAlarm(taskObj.id, alarmLabel, notes || 'Scheduled in ZenRhythm', d.getTime());
         }
       } catch (err) {
         console.warn('Native alarm schedule failed', err);
@@ -1879,7 +1879,7 @@ const App = {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `auraflow_backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `zenrhythm_backup_${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
         if (window.ChronoNotifications) ChronoNotifications.showToast('Backup downloaded! Safe to store or transfer.', 'success');
@@ -1952,7 +1952,7 @@ const App = {
       this.deferredInstallPrompt.prompt();
       const choice = await this.deferredInstallPrompt.userChoice;
       if (choice.outcome === 'accepted') {
-        if (window.ChronoNotifications) ChronoNotifications.showToast('AuraFlow installed as an app!', 'success');
+        if (window.ChronoNotifications) ChronoNotifications.showToast('ZenRhythm installed as an app!', 'success');
       }
       this.deferredInstallPrompt = null;
       installBtn.classList.add('hidden');
@@ -1971,7 +1971,7 @@ const App = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `auraflow_alarms_${todayStr}.ics`;
+    a.download = `zenrhythm_alarms_${todayStr}.ics`;
     a.click();
     URL.revokeObjectURL(url);
     if (window.ChronoNotifications) {
