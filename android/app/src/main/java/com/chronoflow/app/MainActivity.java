@@ -1,7 +1,6 @@
 package com.chronoflow.app;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -9,11 +8,12 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.PermissionRequest;
 import android.os.Build;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.content.pm.PackageManager;
 import android.Manifest;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
 

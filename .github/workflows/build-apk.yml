@@ -23,14 +23,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Gradle 8.7
+      - name: Install and Setup Gradle 8.7
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle-8.7-bin.zip
           echo "$PWD/gradle-8.7/bin" >> $GITHUB_PATH
 
-      - name: Accept Android SDK Licenses
+      - name: Configure Android SDK Location and Licenses
         run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Bundle Web Application into Android Assets
@@ -46,7 +47,7 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          gradle assembleDebug --stacktrace --no-daemon
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
