@@ -1121,39 +1121,89 @@ const App = {
     `;
   },
 
-  // 3.6: Gaussian Distribution Curve 1 - Night Sleep & Peak Deep Sleep
+  // 3.6: Circadian Sleep Curves - Night Sleep Cycle & Daytime Nap Architecture
   drawNightGaussianCurve(logs, config) {
     const svg = document.getElementById('svg-night-curve');
     if (!svg) return;
 
-    // Dimensions: 600 x 200
-    // Gaussian formula: f(x) = H * exp( -((x - mu)^2) / (2 * sigma^2) )
-    const width = 600;
-    const height = 200;
-    const baseline = 170;
-    const peakHeight = 135;
-    const mu = 300; // Peak deep sleep midpoint
-    const sigma = 80;
+    // Dimensions: 600 x 210
+    const baseline = 155;
+    const peakHeight = 115;
+    const peakY = baseline - peakHeight; // 40
 
-    let pathD = `M 40,${baseline}`;
-    const points = [];
+    // Dynamic timing based on user config
+    const stdBedtime = config && config.standardSleepTime ? config.standardSleepTime : '01:00';
+    const targetHours = config && config.targetSleepHours ? config.targetSleepHours : 7.5;
+    const stdWake = ChronoScheduler.calculateWakeTime(stdBedtime, targetHours);
 
-    for (let x = 40; x <= 560; x += 8) {
+    // Calculate midpoint
+    const [bH, bM] = stdBedtime.split(':').map(Number);
+    const bedTotalMins = (bH * 60 + bM);
+    const midTotalMins = (bedTotalMins + (targetHours * 60) / 2) % 1440;
+    const midH = Math.floor(midTotalMins / 60);
+    const midM = Math.round(midTotalMins % 60);
+    const midpointFormatted = `${String(midH).padStart(2, '0')}:${String(midM).padStart(2, '0')}`;
+
+    // Update legend row to match settings precisely
+    const legendEl = document.getElementById('night-curve-legend');
+    if (legendEl) {
+      legendEl.innerHTML = `
+        <span class="legend-item"><span class="legend-color color-bed"></span> Bedtime (${ChronoScheduler.formatTime12(stdBedtime)})</span>
+        <span class="legend-item"><span class="legend-color color-deep"></span> Peak Deep Sleep (~${ChronoScheduler.formatTime12(midpointFormatted)})</span>
+        <span class="legend-item"><span class="legend-color color-wake"></span> Wake Up (${ChronoScheduler.formatTime12(stdWake)})</span>
+      `;
+    }
+
+    // X-Axis Time Scale: 11 PM to 10 AM (11 hours)
+    const hours = ['11 PM', '12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM'];
+    const startX = 40;
+    const endX = 560;
+    const step = (endX - startX) / (hours.length - 1); // ~47.27px per hour
+
+    // Align peak around 4:45 AM (between 4 AM at index 5 and 5 AM at index 6)
+    const mu = startX + (5.75 * step); // ~312px
+    const sigma = 72;
+
+    // Generate bell curve path
+    let pathD = `M 30,${baseline}`;
+    for (let x = 30; x <= 570; x += 6) {
       const exponent = -Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2));
       const y = baseline - (peakHeight * Math.exp(exponent));
-      points.push({ x, y });
       pathD += ` L ${x.toFixed(1)},${y.toFixed(1)}`;
     }
-    pathD += ` L 560,${baseline} Z`;
+    pathD += ` L 570,${baseline} Z`;
 
-    const peakY = baseline - peakHeight;
+    // Coordinates for bedtime (~01:00 AM) and wake up (~08:30 AM)
+    const bedX = startX + (2 * step); // 1 AM
+    const wakeX = startX + (9.5 * step); // 8:30 AM
+
+    // Calculate Y on curve for bedtime and wake
+    const bedY = baseline - (peakHeight * Math.exp(-Math.pow(bedX - mu, 2) / (2 * Math.pow(sigma, 2))));
+    const wakeY = baseline - (peakHeight * Math.exp(-Math.pow(wakeX - mu, 2) / (2 * Math.pow(sigma, 2))));
+
+    // Build X-axis ticks and labels
+    const axisElements = hours.map((lbl, idx) => {
+      const hx = startX + idx * step;
+      const isKey = lbl === '1 AM' || lbl === '5 AM' || lbl === '8 AM';
+      const isPeakHour = lbl === '5 AM';
+      const tickColor = isPeakHour ? '#00f0aa' : (isKey ? '#05d5b0' : 'rgba(255,255,255,0.22)');
+      const textColor = isPeakHour ? '#00f0aa' : (isKey ? '#cbd5e1' : 'rgba(255,255,255,0.45)');
+      const fontWeight = isPeakHour ? '700' : (isKey ? '600' : '400');
+
+      return `
+        <line x1="${hx.toFixed(1)}" y1="${baseline}" x2="${hx.toFixed(1)}" y2="${baseline + 5}" stroke="${tickColor}" stroke-width="${isKey ? '1.5' : '1'}"/>
+        <text x="${hx.toFixed(1)}" y="${baseline + 18}" fill="${textColor}" font-size="9" font-weight="${fontWeight}" text-anchor="middle">${lbl}</text>
+      `;
+    }).join('');
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="auroraCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#05d5b0" stop-opacity="0.25"/>
+          <stop offset="0%" stop-color="#05d5b0" stop-opacity="0.12"/>
+          <stop offset="25%" stop-color="#05d5b0" stop-opacity="0.35"/>
           <stop offset="50%" stop-color="#00f0aa" stop-opacity="0.75"/>
-          <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
+          <stop offset="75%" stop-color="#a855f7" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#a855f7" stop-opacity="0.12"/>
         </linearGradient>
         <linearGradient id="auroraStrokeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stop-color="#05d5b0"/>
@@ -1163,70 +1213,106 @@ const App = {
       </defs>
 
       <!-- Baseline axis -->
-      <line x1="30" y1="${baseline}" x2="570" y2="${baseline}" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+      <line x1="25" y1="${baseline}" x2="575" y2="${baseline}" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" />
 
       <!-- Area fill -->
       <path d="${pathD}" fill="url(#auroraCurveGrad)" />
 
       <!-- Curve Stroke -->
-      <path d="${pathD.replace(/ Z$/, '')}" fill="none" stroke="url(#auroraStrokeGrad)" stroke-width="3.5" stroke-linecap="round" />
+      <path d="${pathD.replace(/ Z$/, '')}" fill="none" stroke="url(#auroraStrokeGrad)" stroke-width="3" stroke-linecap="round" />
 
-      <!-- Peak deep sleep marker -->
-      <line x1="${mu}" y1="${peakY}" x2="${mu}" y2="${baseline}" stroke="#00f0aa" stroke-dasharray="4,4" stroke-width="1.5" opacity="0.8"/>
-      <circle cx="${mu}" cy="${peakY}" r="5" fill="#00f0aa" />
-      <text x="${mu}" y="${peakY - 12}" fill="#00f0aa" font-size="12" font-weight="700" text-anchor="middle">Deep Sleep Midpoint (~04:45)</text>
+      <!-- Vertical drop dashed line from Peak down to X-axis time scale -->
+      <line x1="${mu.toFixed(1)}" y1="${peakY}" x2="${mu.toFixed(1)}" y2="${baseline}" stroke="#00f0aa" stroke-dasharray="3,3" stroke-width="1.5" opacity="0.8"/>
 
-      <!-- Bedtime point -->
-      <circle cx="120" cy="${baseline - 15}" r="4" fill="#05d5b0" />
-      <text x="120" y="${baseline + 20}" fill="#94a3b8" font-size="11" text-anchor="middle">Bedtime (01:00)</text>
+      <!-- Glowing peak marker -->
+      <circle cx="${mu.toFixed(1)}" cy="${peakY}" r="7" fill="rgba(0, 240, 170, 0.25)"/>
+      <circle cx="${mu.toFixed(1)}" cy="${peakY}" r="4.5" fill="#00f0aa" />
+      <text x="${mu.toFixed(1)}" y="${peakY - 12}" fill="#00f0aa" font-size="10" font-weight="700" text-anchor="middle" letter-spacing="0.5">PEAK DEEP RECOVERY</text>
 
-      <!-- Wake point -->
-      <circle cx="480" cy="${baseline - 15}" r="4" fill="#a855f7" />
-      <text x="480" y="${baseline + 20}" fill="#94a3b8" font-size="11" text-anchor="middle">Wake Up (08:30)</text>
+      <!-- Bedtime point on curve -->
+      <circle cx="${bedX.toFixed(1)}" cy="${bedY.toFixed(1)}" r="4" fill="#05d5b0"/>
+      <line x1="${bedX.toFixed(1)}" y1="${bedY.toFixed(1)}" x2="${bedX.toFixed(1)}" y2="${baseline}" stroke="#05d5b0" stroke-dasharray="2,2" stroke-width="1" opacity="0.5"/>
+
+      <!-- Wake point on curve -->
+      <circle cx="${wakeX.toFixed(1)}" cy="${wakeY.toFixed(1)}" r="4" fill="#f59e0b"/>
+      <line x1="${wakeX.toFixed(1)}" y1="${wakeY.toFixed(1)}" x2="${wakeX.toFixed(1)}" y2="${baseline}" stroke="#f59e0b" stroke-dasharray="2,2" stroke-width="1" opacity="0.5"/>
+
+      <!-- X-Axis time scale ticks & labels -->
+      ${axisElements}
     `;
   },
 
-  // 3.6: Gaussian Distribution Curve 2 - Daytime Power Naps (1-2hr)
+  // 3.6: Daytime Power Naps & Rest Window Curve
   drawNapGaussianCurve() {
     const svg = document.getElementById('svg-nap-curve');
     if (!svg) return;
 
-    // Dimensions: 600 x 160
-    const baseline = 135;
-    const peakHeight = 90;
-    const mu = 300; // 14:30 peak
-    const sigma = 55;
+    // Dimensions: 600 x 170
+    const baseline = 125;
+    const peakHeight = 85;
+    const peakY = baseline - peakHeight; // 40
 
-    let pathD = `M 80,${baseline}`;
+    // X-Axis Time Scale: 12 PM to 5 PM (5 hours)
+    const napHours = ['12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM'];
+    const startX = 50;
+    const endX = 550;
+    const step = (endX - startX) / (napHours.length - 1); // 100px per hour
 
-    for (let x = 80; x <= 520; x += 8) {
+    // Peak at 2:30 PM (between 2 PM index 2 and 3 PM index 3)
+    const mu = startX + 2.5 * step; // 300px
+    const sigma = 50;
+
+    // Generate bell curve path
+    let pathD = `M 40,${baseline}`;
+    for (let x = 40; x <= 560; x += 6) {
       const exponent = -Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2));
       const y = baseline - (peakHeight * Math.exp(exponent));
       pathD += ` L ${x.toFixed(1)},${y.toFixed(1)}`;
     }
-    pathD += ` L 520,${baseline} Z`;
+    pathD += ` L 560,${baseline} Z`;
 
-    const peakY = baseline - peakHeight;
+    // Ticks and labels for Nap X-axis
+    const axisElements = napHours.map((lbl, idx) => {
+      const hx = startX + idx * step;
+      const isPeakHour = lbl === '2 PM' || lbl === '3 PM';
+      const tickColor = isPeakHour ? '#f59e0b' : 'rgba(255,255,255,0.2)';
+      const textColor = isPeakHour ? '#f59e0b' : 'rgba(255,255,255,0.45)';
+      const fontWeight = isPeakHour ? '600' : '400';
+
+      return `
+        <line x1="${hx}" y1="${baseline}" x2="${hx}" y2="${baseline + 5}" stroke="${tickColor}" stroke-width="${isPeakHour ? '1.5' : '1'}"/>
+        <text x="${hx}" y="${baseline + 18}" fill="${textColor}" font-size="9" font-weight="${fontWeight}" text-anchor="middle">${lbl}</text>
+      `;
+    }).join('');
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="napGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15"/>
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.1"/>
           <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.65"/>
-          <stop offset="100%" stop-color="#00f0aa" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#00f0aa" stop-opacity="0.2"/>
         </linearGradient>
       </defs>
 
-      <line x1="60" y1="${baseline}" x2="540" y2="${baseline}" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+      <!-- Baseline axis -->
+      <line x1="35" y1="${baseline}" x2="565" y2="${baseline}" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" />
+
+      <!-- Area fill -->
       <path d="${pathD}" fill="url(#napGrad)" />
-      <path d="${pathD.replace(/ Z$/, '')}" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
 
-      <!-- Nap Midpoint -->
-      <circle cx="${mu}" cy="${peakY}" r="4.5" fill="#f59e0b" />
-      <text x="${mu}" y="${peakY - 10}" fill="#f59e0b" font-size="11" font-weight="700" text-anchor="middle">Power Nap Peak (14:15 - 15:00)</text>
+      <!-- Curve Stroke -->
+      <path d="${pathD.replace(/ Z$/, '')}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
 
-      <text x="160" y="${baseline + 18}" fill="#94a3b8" font-size="11" text-anchor="middle">Onset 13:30</text>
-      <text x="440" y="${baseline + 18}" fill="#94a3b8" font-size="11" text-anchor="middle">Wake Refresh 15:30</text>
+      <!-- Vertical drop dashed line from Nap Peak to axis -->
+      <line x1="${mu}" y1="${peakY}" x2="${mu}" y2="${baseline}" stroke="#f59e0b" stroke-dasharray="3,3" stroke-width="1.5" opacity="0.8"/>
+
+      <!-- Nap Midpoint Marker -->
+      <circle cx="${mu}" cy="${peakY}" r="6.5" fill="rgba(245, 158, 11, 0.25)"/>
+      <circle cx="${mu}" cy="${peakY}" r="4" fill="#f59e0b" />
+      <text x="${mu}" y="${peakY - 10}" fill="#f59e0b" font-size="10" font-weight="700" text-anchor="middle" letter-spacing="0.5">RESTORE PEAK (~14:30)</text>
+
+      <!-- X-axis ticks & labels -->
+      ${axisElements}
     `;
   },
 
