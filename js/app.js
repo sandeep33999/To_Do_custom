@@ -35,7 +35,9 @@ const App = {
     this.initTimelineFilters();
     this.initSleepTrackerActions();
     this.initJournalReviewActions();
+    this.initNotesActions();
     this.initSettings();
+    this.initSettingsArchive();
     this.initPWA();
     this.initAndroidBridge();
 
@@ -54,9 +56,17 @@ const App = {
       this.refreshAllViews();
     });
     window.addEventListener('chronoflow:deadlines_updated', () => this.renderDeadlines());
-    window.addEventListener('chronoflow:sleeplogs_updated', () => this.renderSleepLogs());
-    window.addEventListener('chronoflow:journal_updated', () => this.renderDailyReview());
+    window.addEventListener('chronoflow:sleeplogs_updated', () => this.renderAnalysis());
+    window.addEventListener('chronoflow:journal_updated', () => {
+      this.renderDailyReview();
+      this.renderSettingsArchive();
+    });
     window.addEventListener('chronoflow:sleep_session_updated', () => this.updateSleepSessionUI());
+    window.addEventListener('chronoflow:notes_updated', () => this.renderNotes());
+    window.addEventListener('chronoflow:buffer_updated', () => {
+      this.renderAnalysis();
+      this.renderSettingsArchive();
+    });
 
     // 7. Match today's day of week for timetable tab default
     this.selectedTimetableDay = ChronoScheduler.getDayOfWeek();
@@ -66,6 +76,9 @@ const App = {
 
     // 9. Initial Render
     this.refreshAllViews();
+
+    // 10. Handle URL Shortcuts (from Android Widgets or PWA shortcuts)
+    this.handleUrlShortcuts();
   },
 
   invalidateScheduleCache() {
@@ -143,9 +156,13 @@ const App = {
     // Refresh view specific data
     if (viewName === 'timetable') this.renderTimetableSlots();
     if (viewName === 'deadlines') this.renderDeadlines();
-    if (viewName === 'sleeplog') this.renderSleepLogs();
+    if (viewName === 'analysis' || viewName === 'sleeplog') this.renderAnalysis();
+    if (viewName === 'notes') this.renderNotes();
     if (viewName === 'review') this.renderDailyReview();
-    if (viewName === 'settings') this.loadSettingsForm();
+    if (viewName === 'settings') {
+      this.loadSettingsForm();
+      this.renderSettingsArchive();
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
@@ -162,12 +179,25 @@ const App = {
     const btnBufferSelect = document.getElementById('buffer-activity-select');
     if (btnBufferSelect) {
       const todayStr = ChronoScheduler.getTodayDateStr();
-      btnBufferSelect.value = ChronoStorage.getBufferActivity(todayStr);
+      const currentAct = ChronoStorage.getBufferActivity(todayStr);
+      btnBufferSelect.value = currentAct;
+      
+      const bufferTextEl = document.getElementById('alloc-buffer-current-text');
+      if (bufferTextEl) bufferTextEl.textContent = currentAct || 'Free buffer time / Relax';
+
       btnBufferSelect.addEventListener('change', (e) => {
-        ChronoStorage.setBufferActivity(todayStr, e.target.value);
+        const val = e.target.value;
+        ChronoStorage.setBufferActivity(todayStr, val);
+        ChronoStorage.logBufferTime(val);
+
+        const currentText = document.getElementById('alloc-buffer-current-text');
+        if (currentText) currentText.textContent = val;
+
         if (window.ChronoNotifications) {
-          ChronoNotifications.showToast(`Buffer activity set: ${e.target.value}`, 'info');
+          ChronoNotifications.showToast(`Buffer activity logged: ${val}`, 'info');
         }
+        this.renderAnalysis();
+        this.renderSettingsArchive();
       });
     }
 
@@ -477,8 +507,10 @@ const App = {
     this.renderTodayTimeline();
     this.renderTimetableSlots();
     this.renderDeadlines();
-    this.renderSleepLogs();
+    this.renderAnalysis();
+    this.renderNotes();
     this.renderDailyReview();
+    this.renderSettingsArchive();
   },
 
   renderTodayTimeline() {
@@ -830,82 +862,96 @@ const App = {
   },
 
   // ==========================================================================
-  // SLEEP TRACKER & GAUSSIAN CURVES - Requirement 3.1 to 3.6
+  // SLEEP TRACKER, ANALYSIS & CIRCADIAN CURVES
   // ==========================================================================
+  toggleSleepSession() {
+    const session = ChronoStorage.getActiveSleepSession();
+    if (session && session.status === 'asleep') {
+      this.endSleepSession();
+    } else {
+      this.startSleepSession();
+    }
+  },
+
+  startSleepSession() {
+    const now = new Date();
+    ChronoStorage.setActiveSleepSession({
+      startTime: now.toISOString(),
+      status: 'asleep'
+    });
+    if (window.ChronoNotifications) {
+      ChronoNotifications.playChime('alert');
+      ChronoNotifications.showToast('🌙 Sleep session started. Rest well!', 'success');
+    }
+    this.updateSleepSessionUI();
+  },
+
+  endSleepSession() {
+    const session = ChronoStorage.getActiveSleepSession();
+    const now = new Date();
+    let actualHours = 7.5;
+
+    if (session && session.startTime) {
+      const startMs = new Date(session.startTime).getTime();
+      const diffHours = (now.getTime() - startMs) / (1000 * 60 * 60);
+      actualHours = Math.max(0.5, Math.round(diffHours * 10) / 10);
+    }
+
+    const sleptTimeStr = session && session.startTime
+      ? new Date(session.startTime).toTimeString().substring(0, 5)
+      : '01:00';
+    const wokeTimeStr = now.toTimeString().substring(0, 5);
+    const todayStr = ChronoScheduler.getTodayDateStr();
+
+    // Save sleep log
+    ChronoStorage.addSleepLog({
+      date: todayStr,
+      sleptAt: sleptTimeStr,
+      wokeAt: wokeTimeStr,
+      actualHours: actualHours,
+      quality: actualHours >= 7 ? 'Good' : 'Moderate',
+      notes: 'Tracked via 1-tap sleep button'
+    });
+
+    // Clear active session
+    ChronoStorage.setActiveSleepSession(null);
+
+    // Calculate and apply ripple if woken after standard wake
+    const config = ChronoStorage.getConfig();
+    const standardWake = ChronoScheduler.calculateWakeTime(config.standardSleepTime, config.targetSleepHours);
+    const wokeMins = ChronoScheduler.timeToMinutes(wokeTimeStr);
+    const stdWakeMins = ChronoScheduler.timeToMinutes(standardWake);
+
+    if (wokeMins > stdWakeMins) {
+      const shift = wokeMins - stdWakeMins;
+      ChronoStorage.updateDailyState(todayStr, s => ({ ...s, shiftMinutes: shift }));
+      if (window.ChronoNotifications) {
+        ChronoNotifications.showToast(
+          `☀️ Good morning! Logged ${actualHours} hrs`,
+          'success',
+          `Morning ripple applied (+${shift}m). Fixed classes remain locked.`
+        );
+      }
+    } else {
+      if (window.ChronoNotifications) {
+        ChronoNotifications.showToast(`☀️ Good morning! Logged ${actualHours} hrs sleep.`, 'success');
+      }
+    }
+
+    this.renderAnalysis();
+  },
+
   initSleepTrackerActions() {
     // 3.1: 1-Tap Sleep Now and Wake Now Buttons
     const btnSleepNow = document.getElementById('btn-quick-sleep-now');
     const btnWakeNow = document.getElementById('btn-quick-wake-now');
 
     if (btnSleepNow) {
-      btnSleepNow.addEventListener('click', () => {
-        const now = new Date();
-        ChronoStorage.setActiveSleepSession({
-          startTime: now.toISOString(),
-          status: 'asleep'
-        });
-        if (window.ChronoNotifications) {
-          ChronoNotifications.playChime('alert');
-          ChronoNotifications.showToast('🌙 Sleep session started. Rest well!', 'success');
-        }
-      });
+      btnSleepNow.addEventListener('click', () => this.startSleepSession());
     }
 
     if (btnWakeNow) {
-      btnWakeNow.addEventListener('click', () => {
-        const session = ChronoStorage.getActiveSleepSession();
-        const now = new Date();
-        let actualHours = 7.5;
-
-        if (session && session.startTime) {
-          const startMs = new Date(session.startTime).getTime();
-          const diffHours = (now.getTime() - startMs) / (1000 * 60 * 60);
-          actualHours = Math.max(0.5, Math.round(diffHours * 10) / 10);
-        }
-
-        const sleptTimeStr = session && session.startTime
-          ? new Date(session.startTime).toTimeString().substring(0, 5)
-          : '01:00';
-        const wokeTimeStr = now.toTimeString().substring(0, 5);
-        const todayStr = ChronoScheduler.getTodayDateStr();
-
-        // Save sleep log
-        ChronoStorage.addSleepLog({
-          date: todayStr,
-          sleptAt: sleptTimeStr,
-          wokeAt: wokeTimeStr,
-          actualHours: actualHours,
-          quality: actualHours >= 7 ? 'Good' : 'Moderate',
-          notes: 'Tracked via 1-tap sleep button'
-        });
-
-        // Clear active session
-        ChronoStorage.setActiveSleepSession(null);
-
-        // Calculate and apply ripple if woken after standard wake
-        const config = ChronoStorage.getConfig();
-        const standardWake = ChronoScheduler.calculateWakeTime(config.standardSleepTime, config.targetSleepHours);
-        const wokeMins = ChronoScheduler.timeToMinutes(wokeTimeStr);
-        const stdWakeMins = ChronoScheduler.timeToMinutes(standardWake);
-
-        if (wokeMins > stdWakeMins) {
-          const shift = wokeMins - stdWakeMins;
-          ChronoStorage.updateDailyState(todayStr, s => ({ ...s, shiftMinutes: shift }));
-          if (window.ChronoNotifications) {
-            ChronoNotifications.showToast(
-              `☀️ Good morning! Logged ${actualHours} hrs`,
-              'success',
-              `Morning ripple applied (+${shift}m). Fixed classes remain locked.`
-            );
-          }
-        } else {
-          if (window.ChronoNotifications) {
-            ChronoNotifications.showToast(`☀️ Good morning! Logged ${actualHours} hrs sleep.`, 'success');
-          }
-        }
-
-        this.renderSleepLogs();
-      });
+      btnWakeNow.addEventListener('click', () => this.endSleepSession());
     }
 
     // 3.2: Target Sleep Inline Edit
@@ -996,6 +1042,103 @@ const App = {
     if (headline) {
       headline.textContent = `🌙 Sleeping for ${hours}h ${mins}m ${secs}s`;
     }
+  },
+
+  renderAnalysis() {
+    const todayStr = ChronoScheduler.getTodayDateStr();
+    const resolved = ChronoScheduler.resolveScheduleForDate(todayStr);
+    const config = ChronoStorage.getConfig();
+
+    // 1. Calculate time spent in each category (in minutes)
+    let studyMins = 0;
+    let classMins = 0;
+    let routineMins = 120; // Default estimate for morning, lunch, dinner routine
+    let sleepMins = Math.round((config.targetSleepHours || 7.5) * 60);
+
+    // Check today's actual sleep log if available
+    const sleepLogs = ChronoStorage.getSleepLogs();
+    const todaySleep = sleepLogs.find(l => l.date === todayStr);
+    if (todaySleep && todaySleep.actualHours) {
+      sleepMins = Math.round(Number(todaySleep.actualHours) * 60);
+    }
+
+    let completedStudyOrClassMins = 0;
+    let totalScheduledStudyOrClassMins = 0;
+
+    if (resolved && resolved.items) {
+      resolved.items.forEach(item => {
+        const dur = Number(item.duration) || 30;
+        if (item.category === 'study' || item.category === 'exam') {
+          studyMins += dur;
+          totalScheduledStudyOrClassMins += dur;
+          if (item.isCompleted) completedStudyOrClassMins += dur;
+        } else if (item.category === 'class') {
+          classMins += dur;
+          totalScheduledStudyOrClassMins += dur;
+          if (item.isCompleted) completedStudyOrClassMins += dur;
+        } else if (item.category === 'routine' || item.category === 'meals') {
+          routineMins += dur;
+        }
+      });
+    }
+
+    // Buffer minutes is remaining time in a 24-hr (1440 mins) day
+    const accountedMins = studyMins + classMins + routineMins + sleepMins;
+    let bufferMins = Math.max(60, 1440 - accountedMins);
+
+    // Productivity Efficiency Score
+    let efficiency = 88;
+    if (totalScheduledStudyOrClassMins > 0) {
+      efficiency = Math.min(100, Math.max(25, Math.round((completedStudyOrClassMins / totalScheduledStudyOrClassMins) * 100)));
+    } else {
+      efficiency = (todaySleep && todaySleep.actualHours >= config.targetSleepHours) ? 92 : 85;
+    }
+
+    // Update DOM score badge
+    const scoreValEl = document.getElementById('score-efficiency-val');
+    if (scoreValEl) scoreValEl.textContent = `${efficiency}%`;
+
+    // Calculate percentage widths for 24-hour bar
+    const totalDayMins = studyMins + classMins + sleepMins + routineMins + bufferMins;
+    const pStudy = ((studyMins / totalDayMins) * 100).toFixed(1);
+    const pClass = ((classMins / totalDayMins) * 100).toFixed(1);
+    const pSleep = ((sleepMins / totalDayMins) * 100).toFixed(1);
+    const pRoutine = ((routineMins / totalDayMins) * 100).toFixed(1);
+    const pBuffer = ((bufferMins / totalDayMins) * 100).toFixed(1);
+
+    const segStudy = document.getElementById('seg-study');
+    const segClass = document.getElementById('seg-class');
+    const segSleep = document.getElementById('seg-sleep');
+    const segRoutine = document.getElementById('seg-routine');
+    const segBuffer = document.getElementById('seg-buffer');
+
+    if (segStudy) segStudy.style.width = `${pStudy}%`;
+    if (segClass) segClass.style.width = `${pClass}%`;
+    if (segSleep) segSleep.style.width = `${pSleep}%`;
+    if (segRoutine) segRoutine.style.width = `${pRoutine}%`;
+    if (segBuffer) segBuffer.style.width = `${pBuffer}%`;
+
+    // Update metrics numbers
+    const vStudy = document.getElementById('val-study-hrs');
+    const vClass = document.getElementById('val-class-hrs');
+    const vSleep = document.getElementById('val-sleep-hrs');
+    const vBuffer = document.getElementById('val-buffer-hrs');
+    const vRoutine = document.getElementById('val-routine-hrs');
+
+    if (vStudy) vStudy.textContent = `${(studyMins / 60).toFixed(1)}h`;
+    if (vClass) vClass.textContent = `${(classMins / 60).toFixed(1)}h`;
+    if (vSleep) vSleep.textContent = `${(sleepMins / 60).toFixed(1)}h`;
+    if (vBuffer) vBuffer.textContent = `${(bufferMins / 60).toFixed(1)}h`;
+    if (vRoutine) vRoutine.textContent = `${(routineMins / 60).toFixed(1)}h`;
+
+    // Active buffer activity text
+    const bufferTextEl = document.getElementById('alloc-buffer-current-text');
+    if (bufferTextEl) {
+      bufferTextEl.textContent = ChronoStorage.getBufferActivity(todayStr) || 'Free buffer time / Relax';
+    }
+
+    // Render sleep logs, sleep curves, and charts
+    this.renderSleepLogs();
   },
 
   renderSleepLogs() {
@@ -1333,18 +1476,21 @@ const App = {
 
         const todayStr = ChronoScheduler.getTodayDateStr();
         const entry = {
-          id: 'journal-' + Date.now(),
+          id: 'journal-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
           date: todayStr,
           timestamp: new Date().toISOString(),
           notes: text
         };
 
         ChronoStorage.saveJournalEntry(entry);
+        notesInput.value = ''; // Reset input field so user can add another reflection anytime!
+
         if (window.ChronoNotifications) {
           ChronoNotifications.playChime('done');
-          ChronoNotifications.showToast('Reflection journal saved!', 'success');
+          ChronoNotifications.showToast('Reflection journal saved! You can add another reflection anytime.', 'success');
         }
         this.renderDailyReview();
+        this.renderSettingsArchive();
       });
     }
   },
@@ -1354,6 +1500,7 @@ const App = {
       ChronoStorage.deleteJournalEntry(id);
       if (window.ChronoNotifications) ChronoNotifications.showToast('Journal entry deleted', 'info');
       this.renderDailyReview();
+      this.renderSettingsArchive();
     }
   },
 
@@ -1633,6 +1780,10 @@ const App = {
     // Open Deadline (Mission) Modal
     const btnAddDl = document.getElementById('btn-add-deadline-modal');
     if (btnAddDl) btnAddDl.addEventListener('click', () => this.openNewDeadlineModal());
+
+    // Open Note Modal
+    const btnAddNote = document.getElementById('btn-add-note-modal');
+    if (btnAddNote) btnAddNote.addEventListener('click', () => this.openNewNoteModal());
 
     // Modal Close Buttons
     document.querySelectorAll('[data-close]').forEach(btn => {
@@ -2063,6 +2214,368 @@ const App = {
     if (window.ChronoNotifications) {
       ChronoNotifications.playChime('done');
       ChronoNotifications.showToast('Alarms File Downloaded!', 'success', 'Open it with your Android Calendar/Clock to set loud device alarms.');
+    }
+  },
+
+  // ==========================================================================
+  // QUICK NOTES & SCRATCHPAD - VIEW 5
+  // ==========================================================================
+  notesFilter: 'all',
+  notesSearchQuery: '',
+
+  initNotesActions() {
+    const btnAddNote = document.getElementById('btn-add-note-modal');
+    if (btnAddNote) {
+      btnAddNote.addEventListener('click', () => this.openNewNoteModal());
+    }
+
+    const formNote = document.getElementById('form-note');
+    if (formNote) {
+      formNote.addEventListener('submit', (e) => this.handleNoteSubmit(e));
+    }
+
+    const searchInput = document.getElementById('input-notes-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.notesSearchQuery = e.target.value.toLowerCase().trim();
+        this.renderNotes();
+      });
+    }
+
+    const filterChips = document.querySelectorAll('[data-notes-filter]');
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        this.notesFilter = chip.getAttribute('data-notes-filter') || 'all';
+        this.renderNotes();
+      });
+    });
+  },
+
+  openNewNoteModal() {
+    const heading = document.getElementById('modal-note-title-heading');
+    if (heading) heading.textContent = 'Create Note';
+    const formId = document.getElementById('note-form-id');
+    const formTitle = document.getElementById('note-form-title');
+    const formCat = document.getElementById('note-form-category');
+    const formPinned = document.getElementById('note-form-pinned');
+    const formContent = document.getElementById('note-form-content');
+
+    if (formId) formId.value = '';
+    if (formTitle) formTitle.value = '';
+    if (formCat) formCat.value = 'study';
+    if (formPinned) formPinned.checked = false;
+    if (formContent) formContent.value = '';
+
+    this.openModal('modal-note');
+  },
+
+  openEditNoteModal(id) {
+    const note = ChronoStorage.getNotes().find(n => n.id === id);
+    if (!note) return;
+    const heading = document.getElementById('modal-note-title-heading');
+    if (heading) heading.textContent = 'Edit Note';
+    const formId = document.getElementById('note-form-id');
+    const formTitle = document.getElementById('note-form-title');
+    const formCat = document.getElementById('note-form-category');
+    const formPinned = document.getElementById('note-form-pinned');
+    const formContent = document.getElementById('note-form-content');
+
+    if (formId) formId.value = note.id;
+    if (formTitle) formTitle.value = note.title;
+    if (formCat) formCat.value = note.category || 'study';
+    if (formPinned) formPinned.checked = !!note.isPinned;
+    if (formContent) formContent.value = note.content;
+
+    this.openModal('modal-note');
+  },
+
+  handleNoteSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('note-form-id').value;
+    const title = document.getElementById('note-form-title').value.trim();
+    const category = document.getElementById('note-form-category').value;
+    const isPinned = document.getElementById('note-form-pinned').checked;
+    const content = document.getElementById('note-form-content').value.trim();
+    if (!title || !content) return;
+
+    ChronoStorage.saveNote({
+      id: id || undefined,
+      title,
+      category,
+      isPinned,
+      content
+    });
+
+    this.closeModal('modal-note');
+    if (window.ChronoNotifications) {
+      ChronoNotifications.showToast(id ? 'Note updated!' : 'Note saved!', 'success');
+    }
+    this.renderNotes();
+  },
+
+  deleteNote(id) {
+    if (confirm('Delete this note?')) {
+      ChronoStorage.deleteNote(id);
+      if (window.ChronoNotifications) ChronoNotifications.showToast('Note deleted', 'info');
+      this.renderNotes();
+    }
+  },
+
+  togglePinNote(id) {
+    ChronoStorage.togglePinNote(id);
+    this.renderNotes();
+  },
+
+  copyNoteContent(id) {
+    const note = ChronoStorage.getNotes().find(n => n.id === id);
+    if (!note) return;
+    const text = `${note.title}\n\n${note.content}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (window.ChronoNotifications) ChronoNotifications.showToast('Note copied to clipboard!', 'info');
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (window.ChronoNotifications) ChronoNotifications.showToast('Note copied!', 'info');
+    }
+  },
+
+  renderNotes() {
+    const container = document.getElementById('notes-grid');
+    if (!container) return;
+
+    let notes = ChronoStorage.getNotes();
+
+    // Filter by category
+    if (this.notesFilter && this.notesFilter !== 'all') {
+      notes = notes.filter(n => (n.category || 'study') === this.notesFilter);
+    }
+
+    // Filter by search query
+    if (this.notesSearchQuery) {
+      const q = this.notesSearchQuery;
+      notes = notes.filter(n =>
+        (n.title && n.title.toLowerCase().includes(q)) ||
+        (n.content && n.content.toLowerCase().includes(q))
+      );
+    }
+
+    // Pinned notes first, then latest updated
+    notes.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+    });
+
+    if (notes.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state-box" style="grid-column: 1 / -1; padding: 48px 24px;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">📝</div>
+          <h3 style="color: var(--text-main); margin-bottom: 4px;">No Notes Found</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            ${this.notesSearchQuery ? 'No notes matched your search query.' : 'Capture your first note, formula, or exam idea! Tap "+ New Note" above.'}
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = notes.map(note => {
+      const catClass = `tag-${note.category || 'study'}`;
+      const catLabel = (note.category || 'study').toUpperCase();
+      const dateFormatted = new Date(note.updatedAt || note.createdAt || Date.now()).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const escapeHtml = (str) => (str || '').replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+
+      return `
+        <div class="note-card ${note.isPinned ? 'is-pinned' : ''}" data-note-id="${note.id}">
+          <div class="note-card-header">
+            <span class="note-card-tag ${catClass}">${catLabel}</span>
+            <button class="note-pin-btn" onclick="App.togglePinNote('${note.id}')" title="${note.isPinned ? 'Unpin note' : 'Pin note to top'}">
+              ${note.isPinned ? '📌' : '📍'}
+            </button>
+          </div>
+          <h4 class="note-card-title">${escapeHtml(note.title)}</h4>
+          <p class="note-card-body">${escapeHtml(note.content).replace(/\n/g, '<br>')}</p>
+          <div class="note-card-footer">
+            <span class="note-date">${dateFormatted}</span>
+            <div class="note-actions-row">
+              <button class="btn-text" onclick="App.copyNoteContent('${note.id}')" title="Copy to clipboard">📋 Copy</button>
+              <button class="btn-text" onclick="App.openEditNoteModal('${note.id}')" title="Edit note">✏️ Edit</button>
+              <button class="btn-text text-danger" onclick="App.deleteNote('${note.id}')" title="Delete note">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  // ==========================================================================
+  // SETTINGS HISTORY & ARCHIVES
+  // ==========================================================================
+  currentArchiveTab: 'tasks',
+
+  initSettingsArchive() {
+    const archiveTabBtns = document.querySelectorAll('[data-archive-tab]');
+    archiveTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        archiveTabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.currentArchiveTab = btn.getAttribute('data-archive-tab') || 'tasks';
+        this.renderSettingsArchive();
+      });
+    });
+  },
+
+  renderSettingsArchive() {
+    const container = document.getElementById('archive-list-container');
+    const countTasksEl = document.getElementById('count-archive-tasks');
+    const countReflectionsEl = document.getElementById('count-archive-reflections');
+    const countBufferEl = document.getElementById('count-archive-buffer');
+
+    const completedTasks = ChronoStorage.getCompletedTasksArchive();
+    const reflections = ChronoStorage.getJournalEntries();
+    const bufferLogs = ChronoStorage.getBufferHistory();
+
+    if (countTasksEl) countTasksEl.textContent = String(completedTasks.length);
+    if (countReflectionsEl) countReflectionsEl.textContent = String(reflections.length);
+    if (countBufferEl) countBufferEl.textContent = String(bufferLogs.length);
+
+    if (!container) return;
+
+    if (this.currentArchiveTab === 'tasks') {
+      if (completedTasks.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-box" style="padding: 32px 16px;">
+            <p style="color: var(--text-muted);">No completed tasks or missions archived yet. Complete tasks on the dashboard or missions to build your history!</p>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = completedTasks.map(t => {
+        const dateStr = t.completedAt ? new Date(t.completedAt).toLocaleDateString(undefined, {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        }) : t.date;
+        return `
+          <div class="archive-item-card">
+            <div class="archive-item-left">
+              <span class="archive-item-icon">✅</span>
+              <div>
+                <strong class="archive-item-title">${t.title || 'Untitled Task'}</strong>
+                <div class="archive-item-meta">
+                  <span class="category-pill pill-${t.category || 'study'}">${(t.category || 'task').toUpperCase()}</span>
+                  <span>Date: ${dateStr}</span>
+                  ${t.duration ? `<span>• ${t.duration}m</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <span class="text-success bold" style="font-size: 0.8rem;">COMPLETED</span>
+          </div>
+        `;
+      }).join('');
+    } else if (this.currentArchiveTab === 'reflections') {
+      if (reflections.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-box" style="padding: 32px 16px;">
+            <p style="color: var(--text-muted);">No reflections written yet. Record reflections in the Daily Review section.</p>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = reflections.map(r => {
+        const dateStr = new Date(r.timestamp || r.date).toLocaleDateString(undefined, {
+          weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        return `
+          <div class="archive-item-card reflection-archive-card">
+            <div style="width: 100%;">
+              <div class="archive-card-header">
+                <span class="archive-item-meta">🗓️ ${dateStr}</span>
+                <button class="btn-text text-danger" onclick="App.deleteJournalEntry('${r.id}')">Delete</button>
+              </div>
+              <p class="archive-reflection-text">${(r.notes || '').replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else if (this.currentArchiveTab === 'buffer') {
+      if (bufferLogs.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-box" style="padding: 32px 16px;">
+            <p style="color: var(--text-muted);">No buffer activities logged yet. Select your activity in the "What are you doing now?" dropdown.</p>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = bufferLogs.map(b => {
+        const timeStr = new Date(b.timestamp).toLocaleDateString(undefined, {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        return `
+          <div class="archive-item-card">
+            <div class="archive-item-left">
+              <span class="archive-item-icon">⏱️</span>
+              <div>
+                <strong class="archive-item-title">${b.activity}</strong>
+                <div class="archive-item-meta">
+                  <span>Logged: ${timeStr}</span>
+                  ${b.durationMins ? `<span>• ~${b.durationMins} mins</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <span class="category-pill pill-routine">LOGGED</span>
+          </div>
+        `;
+      }).join('');
+    }
+  },
+
+  // ==========================================================================
+  // URL SHORTCUT ACTIONS & ANDROID WIDGET DISPATCHER
+  // ==========================================================================
+  handleUrlShortcuts() {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    if (action) {
+      this.handleShortcutAction(action);
+    }
+  },
+
+  handleShortcutAction(action) {
+    if (!action) return;
+
+    if (action === 'sleep_toggle') {
+      setTimeout(() => {
+        this.switchView('analysis');
+        this.toggleSleepSession();
+      }, 250);
+    } else if (action === 'quick_note') {
+      setTimeout(() => {
+        this.switchView('notes');
+        this.openNewNoteModal();
+      }, 250);
+    } else if (action === 'add_mission') {
+      setTimeout(() => {
+        this.switchView('deadlines');
+        this.openNewDeadlineModal();
+      }, 250);
+    } else if (action === 'analysis') {
+      setTimeout(() => {
+        this.switchView('analysis');
+      }, 250);
     }
   }
 };

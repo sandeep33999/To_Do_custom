@@ -52,8 +52,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Load bundled web assets
-        webView.loadUrl("file:///android_asset/index.html");
+        // Load bundled web assets (forward action param if launched from widget/shortcut)
+        String action = getIntent() != null ? getIntent().getStringExtra("action") : null;
+        if (action != null && !action.isEmpty()) {
+            webView.loadUrl("file:///android_asset/index.html?action=" + action);
+        } else {
+            webView.loadUrl("file:///android_asset/index.html");
+        }
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && webView != null) {
+            String action = intent.getStringExtra("action");
+            if (action != null && !action.isEmpty()) {
+                webView.evaluateJavascript("if (window.App && typeof window.App.handleShortcutAction === 'function') { window.App.handleShortcutAction('" + action + "'); }", null);
+            }
+        }
     }
 
     private long backPressedTime = 0;

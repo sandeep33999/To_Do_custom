@@ -153,11 +153,24 @@
           <span class="badge-counter" id="badge-deadline-count">0</span>
         </button>
 
-        <button class="nav-tab" data-view="sleeplog">
+        <button class="nav-tab" data-view="analysis">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
-          <span>Sleep Tracker</span>
+          <span>Analysis</span>
+        </button>
+
+        <button class="nav-tab" data-view="notes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Notes</span>
         </button>
 
         <button class="nav-tab" data-view="review">
@@ -228,16 +241,29 @@
 
                 <!-- 5.2: Buffer Time Dropdown Selector (when in free time) -->
                 <div id="buffer-activity-container" class="buffer-activity-container hidden">
-                  <label for="buffer-activity-select" class="buffer-label">What are you doing now?</label>
-                  <select id="buffer-activity-select" class="form-input-sm buffer-select">
-                    <option value="Free buffer time / Relax">Free buffer time / Relax</option>
-                    <option value="☕ Coffee & Quick Snack">☕ Coffee & Quick Snack</option>
-                    <option value="🚶 Short Walk & Stretching">🚶 Short Walk & Stretching</option>
-                    <option value="📖 Reading / Casual Learning">📖 Reading / Casual Learning</option>
-                    <option value="🔋 Quick Power Nap">🔋 Quick Power Nap</option>
-                    <option value="🎧 Music & Wind Down">🎧 Music & Wind Down</option>
-                    <option value="📝 Reviewing Notes Ahead">📝 Reviewing Notes Ahead</option>
-                  </select>
+                  <div class="buffer-header-row">
+                    <span class="buffer-label">
+                      <span>⏱️</span>
+                      <span>What are you doing now?</span>
+                    </span>
+                    <span class="buffer-badge">LOGGING TIME</span>
+                  </div>
+                  <div class="buffer-select-wrapper">
+                    <select id="buffer-activity-select" class="buffer-select-styled">
+                      <option value="Free buffer time / Relax">🛋️ Free buffer time / Relax</option>
+                      <option value="☕ Coffee & Quick Snack">☕ Coffee & Quick Snack</option>
+                      <option value="🚶 Short Walk & Stretching">🚶 Short Walk & Stretching</option>
+                      <option value="📖 Reading / Casual Learning">📖 Reading / Casual Learning</option>
+                      <option value="🔋 Quick Power Nap">🔋 Quick Power Nap</option>
+                      <option value="🎧 Music & Wind Down">🎧 Music & Wind Down</option>
+                      <option value="📝 Reviewing Notes Ahead">📝 Reviewing Notes Ahead</option>
+                      <option value="📱 Social Media / Browsing">📱 Social Media / Browsing</option>
+                      <option value="🧹 Chores & Room Cleanup">🧹 Chores & Room Cleanup</option>
+                    </select>
+                    <span class="select-chevron">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                  </div>
                 </div>
 
                 <p id="now-task-notes" class="task-notes-text">Tackle deadline priorities or problem solving.</p>
@@ -381,17 +407,87 @@
         </div>
       </section>
 
-      <!-- ================= VIEW 4: SLEEP TRACKER ================= -->
-      <section id="view-sleeplog" class="app-view">
+      <!-- ================= VIEW 4: ANALYSIS (TIME ALLOCATION & SLEEP RHYTHM) ================= -->
+      <section id="view-analysis" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Sleep Tracker & Smart Wake</h2>
-            <p class="section-subtitle">Real-time sleep tracking, circadian rhythms, and adaptive morning ripple.</p>
+            <h2>Life Rhythm & Productivity Analysis</h2>
+            <p class="section-subtitle">24-hour time allocation, deep work efficiency, buffer time tracking, and circadian health.</p>
           </div>
           <button id="btn-open-sleep-modal-2" class="btn-secondary">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
-            <span>Manual Entry</span>
+            <span>Manual Sleep Entry</span>
           </button>
+        </div>
+
+        <!-- 24-Hour Time Allocation & Productivity Score Card -->
+        <div class="time-allocation-card">
+          <div class="alloc-card-top">
+            <div>
+              <span class="alloc-badge">24-HOUR RHYTHM BREAKDOWN</span>
+              <h3 class="alloc-heading">Time Spent vs. Rest & Buffer</h3>
+            </div>
+            <div class="alloc-score-badge" id="alloc-efficiency-score">
+              <span class="score-val" id="score-efficiency-val">88%</span>
+              <span class="score-lbl">Efficiency</span>
+            </div>
+          </div>
+
+          <!-- Segmented 24-hour progress bar -->
+          <div class="time-distribution-bar-wrapper">
+            <div class="time-distribution-bar" id="alloc-distribution-bar">
+              <div class="alloc-seg seg-study" id="seg-study" style="width: 35%;" title="Focus & Study"></div>
+              <div class="alloc-seg seg-class" id="seg-class" style="width: 20%;" title="Lectures & Labs"></div>
+              <div class="alloc-seg seg-sleep" id="seg-sleep" style="width: 31%;" title="Sleep & Rest"></div>
+              <div class="alloc-seg seg-routine" id="seg-routine" style="width: 8%;" title="Meals & Routine"></div>
+              <div class="alloc-seg seg-buffer" id="seg-buffer" style="width: 6%;" title="Buffer Time"></div>
+            </div>
+          </div>
+
+          <!-- 5 Metric Boxes Grid -->
+          <div class="alloc-metrics-grid">
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-study"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-study-hrs">5.2h</span>
+                <span class="alloc-metric-lbl">Focus Work</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-class"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-class-hrs">3.0h</span>
+                <span class="alloc-metric-lbl">Classes</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-sleep"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-sleep-hrs">7.5h</span>
+                <span class="alloc-metric-lbl">Sleep & Naps</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-buffer"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-buffer-hrs">1.8h</span>
+                <span class="alloc-metric-lbl">Buffer / Relax</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-routine"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-routine-hrs">2.0h</span>
+                <span class="alloc-metric-lbl">Routine & Meals</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Buffer Activity Log Preview -->
+          <div class="alloc-buffer-log-row">
+            <span class="buffer-log-title">⏱️ Active Buffer Time Activity:</span>
+            <span class="buffer-log-value" id="alloc-buffer-current-text">Free buffer time / Relax</span>
+          </div>
         </div>
 
         <!-- 3.1: 1-Tap Sleep / Wake Action Card (No complex form needed!) -->
@@ -540,7 +636,41 @@
         </div>
       </section>
 
-      <!-- ================= VIEW 5: DAILY REVIEW ================= -->
+      <!-- ================= VIEW 5: QUICK NOTES & IDEAS ================= -->
+      <section id="view-notes" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Quick Notes & Scratchpad</h2>
+            <p class="section-subtitle">Capture exam formulas, ideas, priority memos, and lecture summaries.</p>
+          </div>
+          <button id="btn-add-note-modal" class="btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New Note</span>
+          </button>
+        </div>
+
+        <!-- Notes Search & Filter Bar -->
+        <div class="notes-controls-row">
+          <div class="notes-search-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="input-notes-search" class="form-input-sm notes-search-input" placeholder="Search notes by keyword...">
+          </div>
+          <div class="notes-filter-chips">
+            <button class="filter-chip active" data-notes-filter="all">All</button>
+            <button class="filter-chip" data-notes-filter="study">Study</button>
+            <button class="filter-chip" data-notes-filter="ideas">Ideas</button>
+            <button class="filter-chip" data-notes-filter="urgent">Urgent</button>
+            <button class="filter-chip" data-notes-filter="personal">Personal</button>
+          </div>
+        </div>
+
+        <!-- Notes Grid Container -->
+        <div id="notes-grid" class="notes-grid-container">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- ================= VIEW 6: DAILY REVIEW ================= -->
       <section id="view-review" class="app-view">
         <div class="view-header-row">
           <div>
@@ -702,6 +832,26 @@
               <h4>Reset Data</h4>
               <p class="card-desc">Reset all timetable slots and history back to default student schedule.</p>
               <button id="btn-reset-default" class="btn-danger-outline">Reset to Default Sample Schedule</button>
+            </div>
+          </div>
+
+          <!-- Archive & Full History Section -->
+          <div class="settings-card full-width-card" style="grid-column: 1 / -1;">
+            <div class="section-card-header">
+              <div>
+                <h3>Data History & Full Archives</h3>
+                <p class="card-desc">Review your past completed tasks, chronological reflection history, and buffer time logs.</p>
+              </div>
+            </div>
+
+            <div class="archive-tab-bar">
+              <button class="archive-tab-btn active" data-archive-tab="tasks">✅ Completed Tasks (<span id="count-archive-tasks">0</span>)</button>
+              <button class="archive-tab-btn" data-archive-tab="reflections">📖 Reflections (<span id="count-archive-reflections">0</span>)</button>
+              <button class="archive-tab-btn" data-archive-tab="buffer">⏱️ Buffer Logs (<span id="count-archive-buffer">0</span>)</button>
+            </div>
+
+            <div id="archive-list-container" class="archive-list-container">
+              <!-- Rendered via JS -->
             </div>
           </div>
         </div>
@@ -1001,7 +1151,60 @@
     </div>
   </div>
 
-  <!-- ================= 6. FULLSCREEN FOCUS MODE OVERLAY ================= -->
+  <!-- 6. ADD / EDIT NOTE MODAL -->
+  <div id="modal-note" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📝</span>
+          <div>
+            <h3 id="modal-note-title-heading">Create Note</h3>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-note">&times;</button>
+      </div>
+
+      <form id="form-note" class="modal-body">
+        <input type="hidden" id="note-form-id">
+
+        <div class="form-group">
+          <label for="note-form-title">Title *</label>
+          <input type="text" id="note-form-title" class="form-input" required placeholder="e.g. CPU Scheduling Formulas, Exam Tips">
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="note-form-category">Category</label>
+            <select id="note-form-category" class="form-input">
+              <option value="study" selected>Study / Lecture</option>
+              <option value="ideas">Ideas / Thoughts</option>
+              <option value="urgent">Urgent Memo</option>
+              <option value="personal">Personal</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-main);">
+              <input type="checkbox" id="note-form-pinned" style="accent-color: var(--accent-primary); width: 16px; height: 16px;">
+              <span>📌 Pin to Top</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="note-form-content">Content *</label>
+          <textarea id="note-form-content" class="form-textarea" rows="6" required placeholder="Write your notes, formulas, bullet points, or thoughts here..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="modal-note">Cancel</button>
+          <button type="submit" class="btn-primary" id="btn-save-note">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 7. FULLSCREEN FOCUS MODE OVERLAY ================= -->
   <div id="focus-overlay" class="focus-overlay hidden" role="dialog" aria-modal="true">
     <div class="focus-header">
       <div class="focus-brand">

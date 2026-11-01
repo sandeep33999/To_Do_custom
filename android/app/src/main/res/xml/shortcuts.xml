@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="sleep_toggle"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_sleep_short"
+        android:shortcutLongLabel="@string/shortcut_sleep_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.chronoflow.app"
+            android:targetClass="com.chronoflow.app.MainActivity">
+            <extra android:name="action" android:value="sleep_toggle" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="quick_note"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_note_short"
+        android:shortcutLongLabel="@string/shortcut_note_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.chronoflow.app"
+            android:targetClass="com.chronoflow.app.MainActivity">
+            <extra android:name="action" android:value="quick_note" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="add_mission"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_mission_short"
+        android:shortcutLongLabel="@string/shortcut_mission_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.chronoflow.app"
+            android:targetClass="com.chronoflow.app.MainActivity">
+            <extra android:name="action" android:value="add_mission" />
+        </intent>
+    </shortcut>
+
+</shortcuts>

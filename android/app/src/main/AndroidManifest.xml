@@ -28,11 +28,28 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Android App Shortcuts (Home screen long-press) -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <receiver
             android:name="com.chronoflow.app.AlarmReceiver"
             android:exported="false" />
+
+        <!-- Android Home Screen App Widget -->
+        <receiver
+            android:name="com.chronoflow.app.ZenRhythmWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/zenrhythm_widget_info" />
+        </receiver>
 
     </application>
 

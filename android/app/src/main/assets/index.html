@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="ZenRhythm — Dynamic biological rhythm, timetable and mission engine with smart sleep rescheduling and offline alarms.">
+  <meta name="theme-color" content="#070b12">
+  <title>ZenRhythm — Dynamic Rhythm & Mission Scheduler</title>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Google Fonts: Inter, Outfit, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- App Shell -->
+  <div class="app-layout">
+    
+    <!-- Top Global Header -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="brand-logo">
+          <div class="logo-icon-pulse">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+            </svg>
+          </div>
+          <span class="brand-name">Zen<span class="gradient-text">Rhythm</span></span>
+        </div>
+        
+        <div class="live-clock-badge" id="live-clock-badge">
+          <span class="pulse-dot"></span>
+          <span id="header-time">00:00:00</span>
+          <span class="date-sep">•</span>
+          <span id="header-date">Today</span>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <!-- Theme Toggle -->
+        <button id="btn-theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+          <svg id="theme-icon-sun" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- PWA Install Button (hidden until prompt triggers) -->
+        <button id="btn-pwa-install" class="btn-chip btn-install hidden" title="Install ZenRhythm on your device">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Install</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Action Row (Horizontal Scrollable Strip below brand title on mobile) -->
+    <div class="quick-action-strip" id="top-action-strip">
+      <!-- 5.3.2: + Icon for Quick Add Task -->
+      <button id="btn-top-quick-add" class="btn-chip btn-quick-add" title="Quickly Add New Slot or Task">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>+ Add</span>
+      </button>
+
+      <!-- Emergency Time Button -->
+      <button id="btn-emergency-time" class="btn-chip btn-emergency" title="Insert unplanned free time / pause">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Emergency Break</span>
+      </button>
+
+      <!-- Sleep / Wake Ripple Button -->
+      <button id="btn-sleep-adjust" class="btn-chip btn-sleep" title="Log sleep or wake time to dynamically ripple schedule">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span>Smart Sleep</span>
+      </button>
+
+      <!-- Focus Mode Launch Button -->
+      <button id="btn-enter-focus" class="btn-chip btn-focus" title="Enter Distraction-Free Focus Mode">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M3 12h2m14 0h2M12 3v2m0 14v2"></path>
+        </svg>
+        <span>Focus Mode</span>
+      </button>
+
+      <!-- Sync Native Phone Alarms -->
+      <button id="btn-sync-alarms" class="btn-chip btn-sync-alarms" title="Sync today's timetable to your Android Clock & Calendar alarms (.ics)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span>Sync Alarms</span>
+      </button>
+    </div>
+
+    <!-- Navigation Tabs (Desktop Sub-Header / Mobile Bottom Bar) -->
+    <nav class="nav-tabs-bar" aria-label="Main Navigation">
+      <div class="tabs-container">
+        <button class="nav-tab active" data-view="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="9"></rect>
+            <rect x="14" y="3" width="7" height="5"></rect>
+            <rect x="14" y="12" width="7" height="9"></rect>
+            <rect x="3" y="16" width="7" height="5"></rect>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-tab" data-view="timetable">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Timetable Slots</span>
+        </button>
+
+        <button class="nav-tab" data-view="deadlines">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Missions</span>
+          <span class="badge-counter" id="badge-deadline-count">0</span>
+        </button>
+
+        <button class="nav-tab" data-view="analysis">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>Analysis</span>
+        </button>
+
+        <button class="nav-tab" data-view="notes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Notes</span>
+        </button>
+
+        <button class="nav-tab" data-view="review">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Daily Review</span>
+        </button>
+
+        <button class="nav-tab" data-view="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Stage -->
+    <main class="content-stage">
+
+      <!-- ================= VIEW 1: DASHBOARD ("NOW & UP NEXT") ================= -->
+      <section id="view-dashboard" class="app-view active">
+        
+        <!-- Ripple Banner (shows if morning sleep ripple or emergency time is active) -->
+        <div id="ripple-status-banner" class="ripple-banner hidden">
+          <div class="banner-content">
+            <span class="banner-icon">🌊</span>
+            <span id="ripple-banner-text">Dynamic Ripple Active: Flexible tasks shifted +60m due to late sleep.</span>
+          </div>
+          <button id="btn-reset-ripple" class="btn-text">Reset to Standard</button>
+        </div>
+
+        <!-- Hero Section: Now Doing & Up Next HUD -->
+        <div class="dashboard-hud-grid">
+          
+          <!-- CURRENT ACTIVITY CARD (NOW) -->
+          <div class="hud-card now-card">
+            <div class="card-header-badge">
+              <span class="badge-status-dot"></span>
+              <span class="badge-label">NOW DOING</span>
+              <span id="now-category-tag" class="category-pill pill-study">Study</span>
+            </div>
+
+            <div class="now-content-body compact-body">
+              <div class="now-timer-ring-container compact-ring">
+                <svg class="progress-ring" width="96" height="96" viewBox="0 0 96 96">
+                  <circle class="ring-bg" cx="48" cy="48" r="40" stroke-width="7"/>
+                  <circle id="now-progress-circle" class="ring-indicator" cx="48" cy="48" r="40" stroke-width="7" stroke-dasharray="251.32" stroke-dashoffset="60"/>
+                </svg>
+                <div class="timer-center-content">
+                  <span id="now-remaining-time" class="timer-digits">42m</span>
+                  <span class="timer-sublabel">LEFT</span>
+                </div>
+              </div>
+
+              <div class="now-details">
+                <h2 id="now-task-title" class="now-task-heading">Deep Work: Self-Study & Assignments</h2>
+                <div class="task-meta-row">
+                  <span class="meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span id="now-time-range">16:30 – 18:00</span>
+                  </span>
+                  <span id="now-slot-nature" class="meta-badge-flex">Flexible Slot</span>
+                </div>
+
+                <!-- 5.2: Buffer Time Dropdown Selector (when in free time) -->
+                <div id="buffer-activity-container" class="buffer-activity-container hidden">
+                  <div class="buffer-header-row">
+                    <span class="buffer-label">
+                      <span>⏱️</span>
+                      <span>What are you doing now?</span>
+                    </span>
+                    <span class="buffer-badge">LOGGING TIME</span>
+                  </div>
+                  <div class="buffer-select-wrapper">
+                    <select id="buffer-activity-select" class="buffer-select-styled">
+                      <option value="Free buffer time / Relax">🛋️ Free buffer time / Relax</option>
+                      <option value="☕ Coffee & Quick Snack">☕ Coffee & Quick Snack</option>
+                      <option value="🚶 Short Walk & Stretching">🚶 Short Walk & Stretching</option>
+                      <option value="📖 Reading / Casual Learning">📖 Reading / Casual Learning</option>
+                      <option value="🔋 Quick Power Nap">🔋 Quick Power Nap</option>
+                      <option value="🎧 Music & Wind Down">🎧 Music & Wind Down</option>
+                      <option value="📝 Reviewing Notes Ahead">📝 Reviewing Notes Ahead</option>
+                      <option value="📱 Social Media / Browsing">📱 Social Media / Browsing</option>
+                      <option value="🧹 Chores & Room Cleanup">🧹 Chores & Room Cleanup</option>
+                    </select>
+                    <span class="select-chevron">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                <p id="now-task-notes" class="task-notes-text">Tackle deadline priorities or problem solving.</p>
+              </div>
+            </div>
+
+            <!-- 5.1: Instant Undo Banner for Done / Skip -->
+            <div id="now-undo-banner" class="now-undo-banner hidden">
+              <span id="now-undo-text">Task marked as finished.</span>
+              <button id="btn-now-undo" class="btn-undo-action" type="button">↩ Undo</button>
+            </div>
+
+            <!-- QUICK ACTION TOOLBAR FOR CURRENT TASK -->
+            <div class="now-actions-bar">
+              <button id="btn-action-done" class="btn-action btn-action-done" title="Mark this task finished early">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Done Early</span>
+              </button>
+
+              <button id="btn-action-extend" class="btn-action btn-action-extend" title="Need more time? Extend by 15 mins">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+15m</span>
+              </button>
+
+              <button id="btn-action-skip" class="btn-action btn-action-skip" title="Skip this task today">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                <span>Skip</span>
+              </button>
+
+              <button id="btn-action-delete" class="btn-action btn-action-delete" title="Delete for today or permanently">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- UP NEXT CARD -->
+          <div class="hud-card next-card">
+            <div class="card-header-badge">
+              <span class="badge-label-muted">UP NEXT</span>
+              <span id="next-starts-in-badge" class="badge-countdown">Starts in 35m</span>
+            </div>
+
+            <div class="next-content-body">
+              <div id="next-category-tag" class="category-pill pill-break">Break / Gym</div>
+              <h3 id="next-task-title" class="next-task-heading">Evening Snack & Walk / Gym</h3>
+              <div class="next-time-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="next-time-range">18:15 – 19:00 (45 mins)</span>
+              </div>
+              <p id="next-task-notes" class="next-notes-text">Unwind, grab fruit/snack, get blood pumping.</p>
+
+              <div class="subsequent-preview-list">
+                <div class="subsequent-header">Following Tasks Today:</div>
+                <div id="subsequent-items-container" class="subsequent-chips-list">
+                  <!-- Injected via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Today's Dynamic Schedule Timeline -->
+        <div class="timeline-section-card">
+          <div class="section-card-header">
+            <div class="header-title-group">
+              <h3>Today's Adaptive Timeline</h3>
+              <span id="timeline-date-label" class="header-sub">Auto-rescheduled around your slots</span>
+            </div>
+
+            <div class="header-action-group">
+              <button id="btn-quick-add-task" class="btn-primary-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Slot</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 5.1: Timeline Filter Pills (All / Pending / Done / Skipped) -->
+          <div class="timeline-filter-bar">
+            <button class="filter-chip active" data-timeline-filter="all">All</button>
+            <button class="filter-chip" data-timeline-filter="pending">Pending</button>
+            <button class="filter-chip" data-timeline-filter="completed">Completed</button>
+            <button class="filter-chip" data-timeline-filter="skipped">Skipped</button>
+          </div>
+
+          <!-- Timeline items list -->
+          <div id="today-timeline-list" class="timeline-items-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= VIEW 2: TIMETABLE & CLASS SLOTS ================= -->
+      <section id="view-timetable" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Weekly Timetable & Slots</h2>
+            <p class="section-subtitle">Manage recurring class slots, fixed lab blocks, study sessions, and mess timings.</p>
+          </div>
+          <button id="btn-add-slot-modal" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New Slot / Activity</span>
+          </button>
+        </div>
+
+        <!-- Day Filter Tabs (Mon, Tue, Wed, Thu, Fri, Sat, Sun, All) -->
+        <div class="day-filter-bar">
+          <button class="day-chip active" data-day="Mon">Mon</button>
+          <button class="day-chip" data-day="Tue">Tue</button>
+          <button class="day-chip" data-day="Wed">Wed</button>
+          <button class="day-chip" data-day="Thu">Thu</button>
+          <button class="day-chip" data-day="Fri">Fri</button>
+          <button class="day-chip" data-day="Sat">Sat</button>
+          <button class="day-chip" data-day="Sun">Sun</button>
+          <button class="day-chip" data-day="All">All Recurring</button>
+        </div>
+
+        <div id="timetable-slots-grid" class="slots-grid-container">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: MISSIONS (DEADLINES & EXAMS) ================= -->
+      <section id="view-deadlines" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Missions & Examinations</h2>
+            <p class="section-subtitle">High-impact deliverables ordered chronologically by due date & time.</p>
+          </div>
+          <button id="btn-add-deadline-modal" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Add Mission</span>
+          </button>
+        </div>
+
+        <div id="deadlines-list-container" class="deadlines-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- ================= VIEW 4: ANALYSIS (TIME ALLOCATION & SLEEP RHYTHM) ================= -->
+      <section id="view-analysis" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Life Rhythm & Productivity Analysis</h2>
+            <p class="section-subtitle">24-hour time allocation, deep work efficiency, buffer time tracking, and circadian health.</p>
+          </div>
+          <button id="btn-open-sleep-modal-2" class="btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+            <span>Manual Sleep Entry</span>
+          </button>
+        </div>
+
+        <!-- 24-Hour Time Allocation & Productivity Score Card -->
+        <div class="time-allocation-card">
+          <div class="alloc-card-top">
+            <div>
+              <span class="alloc-badge">24-HOUR RHYTHM BREAKDOWN</span>
+              <h3 class="alloc-heading">Time Spent vs. Rest & Buffer</h3>
+            </div>
+            <div class="alloc-score-badge" id="alloc-efficiency-score">
+              <span class="score-val" id="score-efficiency-val">88%</span>
+              <span class="score-lbl">Efficiency</span>
+            </div>
+          </div>
+
+          <!-- Segmented 24-hour progress bar -->
+          <div class="time-distribution-bar-wrapper">
+            <div class="time-distribution-bar" id="alloc-distribution-bar">
+              <div class="alloc-seg seg-study" id="seg-study" style="width: 35%;" title="Focus & Study"></div>
+              <div class="alloc-seg seg-class" id="seg-class" style="width: 20%;" title="Lectures & Labs"></div>
+              <div class="alloc-seg seg-sleep" id="seg-sleep" style="width: 31%;" title="Sleep & Rest"></div>
+              <div class="alloc-seg seg-routine" id="seg-routine" style="width: 8%;" title="Meals & Routine"></div>
+              <div class="alloc-seg seg-buffer" id="seg-buffer" style="width: 6%;" title="Buffer Time"></div>
+            </div>
+          </div>
+
+          <!-- 5 Metric Boxes Grid -->
+          <div class="alloc-metrics-grid">
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-study"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-study-hrs">5.2h</span>
+                <span class="alloc-metric-lbl">Focus Work</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-class"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-class-hrs">3.0h</span>
+                <span class="alloc-metric-lbl">Classes</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-sleep"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-sleep-hrs">7.5h</span>
+                <span class="alloc-metric-lbl">Sleep & Naps</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-buffer"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-buffer-hrs">1.8h</span>
+                <span class="alloc-metric-lbl">Buffer / Relax</span>
+              </div>
+            </div>
+            <div class="alloc-metric-item">
+              <span class="dot-indicator dot-routine"></span>
+              <div>
+                <span class="alloc-metric-val" id="val-routine-hrs">2.0h</span>
+                <span class="alloc-metric-lbl">Routine & Meals</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Buffer Activity Log Preview -->
+          <div class="alloc-buffer-log-row">
+            <span class="buffer-log-title">⏱️ Active Buffer Time Activity:</span>
+            <span class="buffer-log-value" id="alloc-buffer-current-text">Free buffer time / Relax</span>
+          </div>
+        </div>
+
+        <!-- 3.1: 1-Tap Sleep / Wake Action Card (No complex form needed!) -->
+        <div class="sleep-session-card" id="sleep-session-card">
+          <div class="sleep-session-info">
+            <div class="sleep-status-badge" id="sleep-status-badge">
+              <span class="pulse-dot"></span>
+              <span id="sleep-status-text">CURRENTLY AWAKE</span>
+            </div>
+            <h3 id="sleep-session-headline" class="sleep-headline">Ready for rest tonight?</h3>
+            <p id="sleep-session-subtext" class="sleep-subtext">Tap "Sleep Now" when you go to bed. ZenRhythm will count your exact sleep and automatically calculate your wake up.</p>
+          </div>
+
+          <div class="sleep-session-actions">
+            <button id="btn-quick-sleep-now" class="btn-sleep-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span>🌙 Log Sleep Now</span>
+            </button>
+
+            <button id="btn-quick-wake-now" class="btn-wake-primary hidden">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+              </svg>
+              <span>☀️ Wake Up Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sleep Stats Grid (3.2 & 3.4: Target & Bedtime editable directly!) -->
+        <div class="stats-overview-grid">
+          <div class="stat-card editable-stat" id="card-edit-target-sleep" title="Click to edit target sleep">
+            <div class="stat-header-flex">
+              <span class="stat-label">Target Sleep</span>
+              <span class="edit-hint-icon">✏️</span>
+            </div>
+            <div id="stat-target-sleep" class="stat-value">7.5 hrs</div>
+            <div class="stat-inline-edit hidden" id="wrap-edit-target-sleep">
+              <input type="number" id="input-edit-target-sleep" class="form-input-sm" step="0.5" min="4" max="12" value="7.5">
+              <button class="btn-chip-sm" id="btn-save-inline-target">Save</button>
+            </div>
+            <div class="stat-sub">Tap to change goal</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">7-Day Average</div>
+            <div id="stat-avg-sleep" class="stat-value">7.4 hrs</div>
+            <div class="stat-sub text-success" id="stat-avg-status">Restored rhythm</div>
+          </div>
+
+          <div class="stat-card editable-stat" id="card-edit-bedtime" title="Click to edit standard bedtime">
+            <div class="stat-header-flex">
+              <span class="stat-label">Standard Bedtime</span>
+              <span class="edit-hint-icon">✏️</span>
+            </div>
+            <div id="stat-bedtime-cfg" class="stat-value">01:00 AM</div>
+            <div class="stat-inline-edit hidden" id="wrap-edit-bedtime">
+              <input type="time" id="input-edit-bedtime" class="form-input-sm" value="01:00">
+              <button class="btn-chip-sm" id="btn-save-inline-bedtime">Save</button>
+            </div>
+            <div class="stat-sub">Tap to change routine</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">Morning Ripple</div>
+            <div class="stat-value text-accent" id="stat-ripple-status">Active</div>
+            <div class="stat-sub">Protects fixed slots</div>
+          </div>
+        </div>
+
+        <!-- 3.6: Circadian Sleep Distribution Curves -->
+        <div class="charts-card-section">
+          <!-- Graph 1: Night Sleep & Deep Sleep Distribution -->
+          <div class="analytics-card">
+            <div class="analytics-card-header">
+              <div class="analytics-title-wrap">
+                <span class="chart-icon">🌌</span>
+                <div>
+                  <h4>Circadian Rhythm & Night Sleep Cycle</h4>
+                  <p class="chart-desc">7-Day sleep architecture showing bedtime, wake time, and restorative deep sleep stage.</p>
+                </div>
+              </div>
+            </div>
+            <div class="chart-canvas-container" id="curve-night-container">
+              <svg id="svg-night-curve" class="gaussian-svg" viewBox="0 0 600 210" preserveAspectRatio="none">
+                <!-- Injected via JS -->
+              </svg>
+            </div>
+            <div class="curve-legend-row" id="night-curve-legend">
+              <span class="legend-item"><span class="legend-color color-bed"></span> Bedtime (~01:00 AM)</span>
+              <span class="legend-item"><span class="legend-color color-deep"></span> Peak Deep Sleep (~04:45 AM)</span>
+              <span class="legend-item"><span class="legend-color color-wake"></span> Wake Up (~08:30 AM)</span>
+            </div>
+          </div>
+
+          <!-- Graph 2: Daytime Naps Distribution -->
+          <div class="analytics-card" style="margin-top: 16px;">
+            <div class="analytics-card-header">
+              <div class="analytics-title-wrap">
+                <span class="chart-icon">⚡</span>
+                <div>
+                  <h4>Daytime Power Naps & Rest Window</h4>
+                  <p class="chart-desc">Quick 1-2 hour afternoon recovery naps and their restorative curve.</p>
+                </div>
+              </div>
+            </div>
+            <div class="chart-canvas-container" id="curve-nap-container">
+              <svg id="svg-nap-curve" class="gaussian-svg" viewBox="0 0 600 170" preserveAspectRatio="none">
+                <!-- Injected via JS -->
+              </svg>
+            </div>
+            <div class="curve-legend-row" id="nap-curve-legend">
+              <span class="legend-item"><span class="legend-color color-nap-start"></span> Nap Onset (13:30 - 14:00)</span>
+              <span class="legend-item"><span class="legend-color color-nap-peak"></span> Restorative Peak (~14:30)</span>
+              <span class="legend-item"><span class="legend-color color-nap-wake"></span> Refresh Window (15:30)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.5: Graphical 7-Day Sleep Duration Bar Chart -->
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>7-Day Sleep Duration Analysis</h3>
+            <span class="header-sub">Daily actual vs 7.5h target</span>
+          </div>
+          <div class="sleep-barchart-container" id="sleep-barchart-container">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Sleep History Table / Cards -->
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>Recent Sleep Log History</h3>
+          </div>
+          <div id="sleep-history-list" class="sleep-logs-table-container">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 5: QUICK NOTES & IDEAS ================= -->
+      <section id="view-notes" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Quick Notes & Scratchpad</h2>
+            <p class="section-subtitle">Capture exam formulas, ideas, priority memos, and lecture summaries.</p>
+          </div>
+          <button id="btn-add-note-modal" class="btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New Note</span>
+          </button>
+        </div>
+
+        <!-- Notes Search & Filter Bar -->
+        <div class="notes-controls-row">
+          <div class="notes-search-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="input-notes-search" class="form-input-sm notes-search-input" placeholder="Search notes by keyword...">
+          </div>
+          <div class="notes-filter-chips">
+            <button class="filter-chip active" data-notes-filter="all">All</button>
+            <button class="filter-chip" data-notes-filter="study">Study</button>
+            <button class="filter-chip" data-notes-filter="ideas">Ideas</button>
+            <button class="filter-chip" data-notes-filter="urgent">Urgent</button>
+            <button class="filter-chip" data-notes-filter="personal">Personal</button>
+          </div>
+        </div>
+
+        <!-- Notes Grid Container -->
+        <div id="notes-grid" class="notes-grid-container">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- ================= VIEW 6: DAILY REVIEW ================= -->
+      <section id="view-review" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Daily Productivity & Habit Review</h2>
+            <p class="section-subtitle">Evaluate your daily execution, track completion, and record insights.</p>
+          </div>
+        </div>
+
+        <div class="review-dashboard-grid">
+          <div class="review-score-card">
+            <div class="score-ring-wrap">
+              <svg class="progress-ring" width="140" height="140" viewBox="0 0 140 140">
+                <circle class="ring-bg" cx="70" cy="70" r="58" stroke-width="10"/>
+                <circle id="review-score-circle" class="ring-indicator ring-success" cx="70" cy="70" r="58" stroke-width="10" stroke-dasharray="364.42" stroke-dashoffset="60"/>
+              </svg>
+              <div class="score-center-text">
+                <span id="review-completion-percent" class="score-number">85%</span>
+                <span class="score-sub">COMPLETION</span>
+              </div>
+            </div>
+
+            <div class="review-stat-summary">
+              <div class="rev-stat"><span id="rev-completed-count" class="bold text-success">0</span> Completed</div>
+              <div class="rev-stat"><span id="rev-skipped-count" class="bold text-warning">0</span> Skipped</div>
+              <div class="rev-stat"><span id="rev-pending-count" class="bold text-muted">0</span> Remaining</div>
+            </div>
+          </div>
+
+          <!-- 2.1: Journal & Reflection with Save Button directly adjacent -->
+          <div class="review-reflection-card">
+            <h3>Today's Journal & Reflection</h3>
+            <p class="card-desc">Write down what went well today, what caused friction, and notes for tomorrow's schedule.</p>
+            <textarea id="review-notes-input" class="form-textarea" rows="4" placeholder="Example: Finished SQL assignment on time. Tomorrow wake up early for Networks quiz..."></textarea>
+            
+            <div class="reflection-save-row">
+              <button id="btn-save-review" class="btn-primary" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+                <span>Save Reflection</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.1: Saved Reflection & Journal History List with Timestamps and Delete Option -->
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>Saved Journal & Reflection History</h3>
+            <span id="journal-count-badge" class="header-sub">0 reflections recorded</span>
+          </div>
+          <div id="saved-journal-entries-list" class="journal-entries-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>Task Breakdown for Today</h3>
+          </div>
+          <div id="review-tasks-breakdown" class="review-breakdown-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 6: SETTINGS & BACKUP ================= -->
+      <section id="view-settings" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Settings & Data Safety</h2>
+            <p class="section-subtitle">Configure your personal preferences, sleep standards, alerts, and backup your schedule.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Schedule & Sleep Configuration</h3>
+            
+            <div class="form-group">
+              <label for="cfg-user-name">Your Name / Title</label>
+              <input type="text" id="cfg-user-name" class="form-input" placeholder="e.g. Alex or Sandeep">
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="cfg-standard-sleep">Standard Bedtime</label>
+                <input type="time" id="cfg-standard-sleep" class="form-input" value="01:00">
+                <small class="field-hint">When you normally aim to sleep</small>
+              </div>
+
+              <div class="form-group">
+                <label for="cfg-target-sleep-hours">Target Sleep Duration (Hours)</label>
+                <input type="number" id="cfg-target-sleep-hours" class="form-input" step="0.5" min="4" max="12" value="7.5">
+                <small class="field-hint">Used to calculate wake ripple</small>
+              </div>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="cfg-notify-before">Alert Before Task Starts (Minutes)</label>
+                <select id="cfg-notify-before" class="form-input">
+                  <option value="0">At start time</option>
+                  <option value="5" selected>5 minutes before</option>
+                  <option value="10">10 minutes before</option>
+                  <option value="15">15 minutes before</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Audio Chime Alerts</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="cfg-sound-alerts" checked>
+                  <span class="slider"></span>
+                </label>
+                <small class="field-hint">Pleasant Web Audio chime</small>
+              </div>
+            </div>
+
+            <button id="btn-save-settings" class="btn-primary">Save Settings</button>
+          </div>
+
+          <div class="settings-card">
+            <h3>Notifications & Permissions</h3>
+            <p class="card-desc">Enable native browser notifications to receive alerts before your next class or study block begins.</p>
+            <button id="btn-request-notif-perm" class="btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span>Enable Browser Notifications</span>
+            </button>
+
+            <div class="divider"></div>
+
+            <h3>Android Native Alarms & Clock Sync</h3>
+            <p class="card-desc">Sync all of today's classes and study sessions directly into your Android Calendar and Clock with loud audio alarms that ring even with the screen locked or offline.</p>
+            <button id="btn-sync-alarms-settings" class="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span>Sync to Phone Alarms (.ics)</span>
+            </button>
+
+            <div class="divider"></div>
+
+            <h3>Data Backup & Restore (GitHub Pages Safe)</h3>
+            <p class="card-desc">All your tasks and timetable are stored in your device's browser. Download a JSON backup to transfer between your phone and laptop anytime.</p>
+            
+            <div class="btn-group-row">
+              <button id="btn-export-backup" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Export JSON Backup</span>
+              </button>
+
+              <label class="btn-secondary file-upload-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Import JSON Backup</span>
+                <input type="file" id="import-file-input" accept=".json" class="hidden">
+              </label>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="danger-zone">
+              <h4>Reset Data</h4>
+              <p class="card-desc">Reset all timetable slots and history back to default student schedule.</p>
+              <button id="btn-reset-default" class="btn-danger-outline">Reset to Default Sample Schedule</button>
+            </div>
+          </div>
+
+          <!-- Archive & Full History Section -->
+          <div class="settings-card full-width-card" style="grid-column: 1 / -1;">
+            <div class="section-card-header">
+              <div>
+                <h3>Data History & Full Archives</h3>
+                <p class="card-desc">Review your past completed tasks, chronological reflection history, and buffer time logs.</p>
+              </div>
+            </div>
+
+            <div class="archive-tab-bar">
+              <button class="archive-tab-btn active" data-archive-tab="tasks">✅ Completed Tasks (<span id="count-archive-tasks">0</span>)</button>
+              <button class="archive-tab-btn" data-archive-tab="reflections">📖 Reflections (<span id="count-archive-reflections">0</span>)</button>
+              <button class="archive-tab-btn" data-archive-tab="buffer">⏱️ Buffer Logs (<span id="count-archive-buffer">0</span>)</button>
+            </div>
+
+            <div id="archive-list-container" class="archive-list-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div><!-- /app-layout -->
+
+  <!-- ================= MODALS & DIALOGS ================= -->
+
+  <!-- 1. SMART SLEEP / WAKE ADJUSTMENT MODAL -->
+  <div id="modal-sleep" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">🌙</span>
+          <div>
+            <h3>Smart Sleep & Wake Adjustment</h3>
+            <p class="modal-subtitle">Ripples your morning schedule automatically based on actual sleep.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-sleep">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="sleep-input-slept">When did you go to bed?</label>
+          <input type="time" id="sleep-input-slept" class="form-input" value="02:00">
+          <small class="field-hint">e.g. 02:00 AM instead of regular 01:00 AM</small>
+        </div>
+
+        <div class="form-group">
+          <label for="sleep-input-woke">Wake-up Time (Optional)</label>
+          <input type="time" id="sleep-input-woke" class="form-input" placeholder="Leave empty to auto-calculate">
+          <small class="field-hint">Leave blank to automatically preserve your 7.5 hrs sleep duration.</small>
+        </div>
+
+        <div class="callout-box">
+          <div class="callout-title">⚡ How Chronoflow adjusts:</div>
+          <p class="callout-text">Your morning wake time and flexible self-study routines will be shifted forward by the delay. Fixed commitments like Class Slots or Mess timings will NOT be broken, and study slots will neatly rebalance around them.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modal-sleep">Cancel</button>
+        <button id="btn-submit-sleep-ripple" class="btn-primary">Apply Smart Ripple</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. EMERGENCY FREE TIME MODAL -->
+  <div id="modal-emergency" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">⚡</span>
+          <div>
+            <h3>Insert Emergency Free Time</h3>
+            <p class="modal-subtitle">Inject an unplanned pause or urgent task right now without breaking fixed classes.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-emergency">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Duration</label>
+          <div class="duration-selector-row">
+            <button type="button" class="btn-chip-choice active" data-mins="15">15 min</button>
+            <button type="button" class="btn-chip-choice" data-mins="30">30 min</button>
+            <button type="button" class="btn-chip-choice" data-mins="45">45 min</button>
+            <button type="button" class="btn-chip-choice" data-mins="60">1 Hour</button>
+            <button type="button" class="btn-chip-choice" data-mins="90">1.5 Hours</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="emergency-input-title">Reason / Title</label>
+          <input type="text" id="emergency-input-title" class="form-input" value="Unexpected Break / Dean Meeting" placeholder="e.g. Urgent Dean meeting, Power cut, Doctor visit">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modal-emergency">Cancel</button>
+        <button id="btn-submit-emergency" class="btn-primary">Inject & Shift Flexible Tasks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ADD / EDIT TASK MODAL -->
+  <div id="modal-task" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📅</span>
+          <div>
+            <h3 id="modal-task-title-heading">Create Timetable Slot / Task</h3>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-task">&times;</button>
+      </div>
+
+      <form id="form-task" class="modal-body">
+        <input type="hidden" id="task-form-id">
+        <input type="hidden" id="task-form-nature" value="slot">
+
+        <!-- Activity Nature: Scheduled Slot vs Reminder -->
+        <div class="form-group">
+          <label>Activity Nature</label>
+          <div class="duration-selector-row">
+            <button type="button" class="btn-chip-choice active" id="btn-nature-slot" data-nature="slot">
+              ⏱️ Scheduled Time Slot
+            </button>
+            <button type="button" class="btn-chip-choice" id="btn-nature-reminder" data-nature="reminder">
+              🔔 Timed Reminder / Alert
+            </button>
+          </div>
+          <small class="field-hint" id="nature-explanation">Time slots reserve a block on your daily schedule. Reminders only ring an exact alarm without occupying schedule blocks.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="task-form-title">Activity Title *</label>
+          <input type="text" id="task-form-title" class="form-input" required placeholder="e.g. Operating Systems Slot B, Mess Breakfast, Self-Study">
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="task-form-category">Category *</label>
+            <select id="task-form-category" class="form-input">
+              <option value="class">Class / Lecture / Lab</option>
+              <option value="study">Self-Study & Revision</option>
+              <option value="meal">Mess / Meal Time</option>
+              <option value="sleep">Sleep & Recovery</option>
+              <option value="work">Work / Coding / Project</option>
+              <option value="exam">Exam / Test Slot</option>
+              <option value="break">Break / Gym / Snack</option>
+              <option value="personal">Personal Routine</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="task-form-priority">Priority</label>
+            <select id="task-form-priority" class="form-input">
+              <option value="high">High Priority</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="task-form-start" id="label-task-start">Start Time *</label>
+            <input type="time" id="task-form-start" class="form-input" required value="09:00">
+          </div>
+
+          <div class="form-group" id="task-form-duration-container">
+            <label for="task-form-duration">Duration (Minutes) *</label>
+            <input type="number" id="task-form-duration" class="form-input" required min="10" max="600" step="5" value="60">
+          </div>
+        </div>
+
+        <!-- Fixed vs Flexible Toggle -->
+        <div class="form-group flex-toggle-box" id="task-form-fixed-container">
+          <div class="flex-toggle-text">
+            <strong>Fixed Slot Commitment</strong>
+            <p>Fixed slots (Class timetable, Exams, Mess) are strictly anchored and cannot be shifted automatically. Flexible slots (Self-study, gym) will ripple around them.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="task-form-fixed" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Days Selector -->
+        <div class="form-group">
+          <label>Recurring Days</label>
+          <div class="days-selector-row">
+            <label class="day-check"><input type="checkbox" name="task-days" value="Mon" checked><span>M</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Tue" checked><span>T</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Wed" checked><span>W</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Thu" checked><span>T</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Fri" checked><span>F</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Sat"><span>S</span></label>
+            <label class="day-check"><input type="checkbox" name="task-days" value="Sun"><span>S</span></label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="task-form-notes">Notes / Location / Room</label>
+          <input type="text" id="task-form-notes" class="form-input" placeholder="e.g. Hall 302, Prof. Sharma, Attendance 75%">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="modal-task">Cancel</button>
+          <button type="submit" class="btn-primary">Save Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. ADD / EDIT MISSION (DEADLINE & EXAM) MODAL -->
+  <div id="modal-deadline" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">🎯</span>
+          <div>
+            <h3 id="modal-deadline-title-heading">Add Mission</h3>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-deadline">&times;</button>
+      </div>
+
+      <form id="form-deadline" class="modal-body">
+        <input type="hidden" id="dl-edit-id">
+
+        <div class="form-group">
+          <label for="dl-title">Subject Name *</label>
+          <input type="text" id="dl-title" class="form-input" required placeholder="Subject Name (e.g. Operating Systems Mid-Sem Exam)">
+        </div>
+
+        <div class="form-group">
+          <label for="dl-type">Mission Type</label>
+          <select id="dl-type" class="form-input">
+            <option value="exam">Examination / Mid-Sem / Quiz</option>
+            <option value="assignment">Assignment / Problem Set</option>
+            <option value="project">Project Deliverable / Submission</option>
+          </select>
+        </div>
+
+        <!-- 1(e): Unified Date & Time side-by-side in one place -->
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="dl-due-date">Due Date *</label>
+            <input type="date" id="dl-due-date" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label for="dl-due-time">Due Time *</label>
+            <input type="time" id="dl-due-time" class="form-input" value="23:59" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dl-notes">Syllabus / Mission Notes</label>
+          <textarea id="dl-notes" class="form-textarea" rows="2" placeholder="e.g. Chapters 1-5, submit PDF on portal"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="modal-deadline">Cancel</button>
+          <button type="submit" class="btn-primary" id="btn-submit-deadline">Save Mission</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. DELETE CONFIRMATION MODAL (Today Only vs Forever) -->
+  <div id="modal-delete-choice" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon text-danger">⚠️</span>
+          <div>
+            <h3>Remove Task / Slot</h3>
+            <p id="delete-modal-task-name" class="modal-subtitle">Computer Networks</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-delete-choice">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p>How would you like to delete this slot?</p>
+        <div class="delete-options-grid">
+          <button id="btn-delete-today-only" class="btn-delete-opt">
+            <div class="opt-icon">📅</div>
+            <div class="opt-text">
+              <strong>Delete for TODAY Only</strong>
+              <span>Keeps the slot in your recurring weekly timetable. Perfect for canceled classes or a one-day holiday.</span>
+            </div>
+          </button>
+
+          <button id="btn-delete-forever" class="btn-delete-opt opt-danger">
+            <div class="opt-icon">🗑️</div>
+            <div class="opt-text">
+              <strong>Delete FOREVER from Timetable</strong>
+              <span>Completely removes this recurring task from your schedule.</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modal-delete-choice">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ADD / EDIT NOTE MODAL -->
+  <div id="modal-note" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📝</span>
+          <div>
+            <h3 id="modal-note-title-heading">Create Note</h3>
+          </div>
+        </div>
+        <button class="modal-close-btn" data-close="modal-note">&times;</button>
+      </div>
+
+      <form id="form-note" class="modal-body">
+        <input type="hidden" id="note-form-id">
+
+        <div class="form-group">
+          <label for="note-form-title">Title *</label>
+          <input type="text" id="note-form-title" class="form-input" required placeholder="e.g. CPU Scheduling Formulas, Exam Tips">
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="note-form-category">Category</label>
+            <select id="note-form-category" class="form-input">
+              <option value="study" selected>Study / Lecture</option>
+              <option value="ideas">Ideas / Thoughts</option>
+              <option value="urgent">Urgent Memo</option>
+              <option value="personal">Personal</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-main);">
+              <input type="checkbox" id="note-form-pinned" style="accent-color: var(--accent-primary); width: 16px; height: 16px;">
+              <span>📌 Pin to Top</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="note-form-content">Content *</label>
+          <textarea id="note-form-content" class="form-textarea" rows="6" required placeholder="Write your notes, formulas, bullet points, or thoughts here..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="modal-note">Cancel</button>
+          <button type="submit" class="btn-primary" id="btn-save-note">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 7. FULLSCREEN FOCUS MODE OVERLAY ================= -->
+  <div id="focus-overlay" class="focus-overlay hidden" role="dialog" aria-modal="true">
+    <div class="focus-header">
+      <div class="focus-brand">
+        <span class="pulse-dot"></span>
+        <span>FOCUS MODE</span>
+      </div>
+      <button id="btn-exit-focus" class="btn-icon-light" title="Exit Focus Mode">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="focus-center-container">
+      <div id="focus-category-tag" class="category-pill pill-study">Study</div>
+      <h1 id="focus-task-title" class="focus-task-name">Deep Work: Self-Study & Assignments</h1>
+      
+      <div class="focus-timer-display">
+        <span id="focus-timer-digits" class="focus-big-digits">38:42</span>
+        <span class="focus-subtext">REMAINING UNTIL NEXT COMMITMENT</span>
+      </div>
+
+      <div class="focus-progress-bar-wrap">
+        <div id="focus-progress-fill" class="focus-progress-bar" style="width: 45%;"></div>
+      </div>
+
+      <p id="focus-notes" class="focus-notes-text">Tackle deadline priorities or problem solving.</p>
+
+      <div class="focus-controls-row">
+        <button id="btn-focus-done" class="btn-action btn-action-done">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Done Early</span>
+        </button>
+
+        <button id="btn-focus-extend" class="btn-action btn-action-extend">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>+15m Delay</span>
+        </button>
+      </div>
+
+      <div class="focus-next-preview">
+        <span>Up Next:</span>
+        <strong id="focus-next-title">Evening Snack & Gym (18:15)</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/storage.js"></script>
+  <script src="js/scheduler.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW Registered:', reg.scope))
+          .catch(err => console.log('SW Registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

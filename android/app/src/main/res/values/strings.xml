@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">ZenRhythm</string>
+    <string name="shortcut_sleep_short">Sleep / Wake</string>
+    <string name="shortcut_sleep_long">1-Tap Sleep or Wake Toggle</string>
+    <string name="shortcut_note_short">Quick Note</string>
+    <string name="shortcut_note_long">Capture Quick Note or Idea</string>
+    <string name="shortcut_mission_short">Add Mission</string>
+    <string name="shortcut_mission_long">Add Mission or Deadline</string>
+    <string name="widget_title">ZenRhythm Quick Bar</string>
 </resources>

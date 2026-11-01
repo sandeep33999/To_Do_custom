@@ -494,16 +494,17 @@ const ChronoStorage = {
     }
   },
 
+  // Allows multiple reflections per day without overwriting
   saveJournalEntry(entry) {
     const entries = this.getJournalEntries();
-    const existingIndex = entries.findIndex(e => e.id === entry.id || e.date === entry.date);
+    const existingIndex = entries.findIndex(e => e.id === entry.id);
     if (existingIndex >= 0) {
       entries[existingIndex] = { ...entries[existingIndex], ...entry };
     } else {
       entries.unshift(entry);
     }
     localStorage.setItem('zenrhythm_journal_entries', JSON.stringify(entries));
-    // Also save in daily reviews for review compatibility
+    // Also save latest note in daily reviews
     this.saveDailyReview(entry.date, { date: entry.date, notes: entry.notes, savedAt: entry.timestamp });
     window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
     return entry;
@@ -516,17 +517,159 @@ const ChronoStorage = {
     window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
   },
 
+  // ==========================================================================
+  // NOTES & IDEAS SYSTEM
+  // ==========================================================================
+  getNotes() {
+    try {
+      const raw = localStorage.getItem('zenrhythm_notes');
+      if (raw) return JSON.parse(raw);
+      // Default sample notes
+      const initialNotes = [
+        {
+          id: 'note-1',
+          title: 'Mid-Sem Exam Key Formulas',
+          category: 'study',
+          content: 'Operating Systems: Banker Algorithm safety check steps.\nCPU Scheduling: Turnaround time = Completion time - Arrival time.\nWaiting time = Turnaround time - Burst time.',
+          pinned: true,
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'note-2',
+          title: 'Daily Rhythm Guidelines',
+          category: 'ideas',
+          content: '1. Never study immediately after lunch; take a 20m stroll.\n2. Hydrate during the 18:15 evening break.\n3. Keep bedtime around 01:00 AM for maximum deep recovery.',
+          pinned: false,
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      this.saveNotes(initialNotes);
+      return initialNotes;
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveNotes(notes) {
+    localStorage.setItem('zenrhythm_notes', JSON.stringify(notes));
+    window.dispatchEvent(new CustomEvent('zenrhythm:notes_updated', { detail: notes }));
+  },
+
+  saveNote(note) {
+    let notes = this.getNotes();
+    const idx = notes.findIndex(n => n.id === note.id);
+    if (idx >= 0) {
+      notes[idx] = { ...notes[idx], ...note, updatedAt: new Date().toISOString() };
+    } else {
+      notes.unshift({
+        ...note,
+        id: note.id || ('note-' + Date.now()),
+        pinned: !!note.pinned,
+        updatedAt: new Date().toISOString()
+      });
+    }
+    // Sort pinned first, then newest
+    notes.sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
+    this.saveNotes(notes);
+    return note;
+  },
+
+  deleteNote(id) {
+    let notes = this.getNotes();
+    notes = notes.filter(n => n.id !== id);
+    this.saveNotes(notes);
+  },
+
+  togglePinNote(id) {
+    let notes = this.getNotes();
+    const note = notes.find(n => n.id === id);
+    if (note) {
+      note.pinned = !note.pinned;
+      notes.sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return new Date(b.updatedAt) - new Date(a.updatedAt);
+      });
+      this.saveNotes(notes);
+    }
+  },
+
+  // ==========================================================================
+  // BUFFER TIME HISTORY & TRACKING
+  // ==========================================================================
+  getBufferHistory() {
+    try {
+      const raw = localStorage.getItem('zenrhythm_buffer_history');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  logBufferTime(activity, durationMins = 30) {
+    const history = this.getBufferHistory();
+    const todayStr = ChronoScheduler.getTodayDateStr();
+    history.unshift({
+      id: 'buf-' + Date.now(),
+      date: todayStr,
+      activity: activity || 'Free buffer time / Relax',
+      durationMins: durationMins,
+      timestamp: new Date().toISOString()
+    });
+    // Keep last 100 entries
+    const trimmed = history.slice(0, 100);
+    localStorage.setItem('zenrhythm_buffer_history', JSON.stringify(trimmed));
+    window.dispatchEvent(new CustomEvent('zenrhythm:buffer_history_updated', { detail: trimmed }));
+  },
+
+  // ==========================================================================
+  // COMPLETED TASKS ARCHIVE
+  // ==========================================================================
+  getCompletedTasksArchive() {
+    try {
+      const dailyStateMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.DAILY_STATE) || '{}');
+      const allTasks = this.getTasks();
+      const archive = [];
+
+      Object.keys(dailyStateMap).forEach(dateStr => {
+        const state = dailyStateMap[dateStr];
+        if (state && state.completedTaskIds && Array.isArray(state.completedTaskIds)) {
+          state.completedTaskIds.forEach(tId => {
+            const task = allTasks.find(t => t.id === tId) || { id: tId, title: 'Completed Task', category: 'study', duration: 60 };
+            archive.push({
+              date: dateStr,
+              taskId: tId,
+              title: task.title,
+              category: task.category || 'study',
+              duration: task.duration || 60,
+              startTime: task.startTime || '09:00'
+            });
+          });
+        }
+      });
+
+      return archive.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } catch (e) {
+      return [];
+    }
+  },
+
   // Full backup Export / Import
   exportAllData() {
     const backup = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       config: this.getConfig(),
       tasks: this.getTasks(),
       dailyState: JSON.parse(localStorage.getItem(STORAGE_KEYS.DAILY_STATE) || '{}'),
       sleepLogs: this.getSleepLogs(),
       deadlines: this.getDeadlines(),
-      reviews: this.getDailyReviews()
+      reviews: this.getDailyReviews(),
+      journalEntries: this.getJournalEntries(),
+      notes: this.getNotes(),
+      bufferHistory: this.getBufferHistory()
     };
     return JSON.stringify(backup, null, 2);
   },
@@ -540,6 +683,9 @@ const ChronoStorage = {
       if (data.sleepLogs) localStorage.setItem(STORAGE_KEYS.SLEEP_LOGS, JSON.stringify(data.sleepLogs));
       if (data.deadlines) localStorage.setItem(STORAGE_KEYS.DEADLINES, JSON.stringify(data.deadlines));
       if (data.reviews) localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(data.reviews));
+      if (data.journalEntries) localStorage.setItem('zenrhythm_journal_entries', JSON.stringify(data.journalEntries));
+      if (data.notes) localStorage.setItem('zenrhythm_notes', JSON.stringify(data.notes));
+      if (data.bufferHistory) localStorage.setItem('zenrhythm_buffer_history', JSON.stringify(data.bufferHistory));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };

@@ -71,10 +71,34 @@
   ],
   "shortcuts": [
     {
-      "name": "Dashboard & Timeline",
-      "short_name": "Dashboard",
-      "description": "View today's live activities and countdown",
-      "url": "https://sandeep33999.github.io/To_Do_custom/",
+      "name": "1-Tap Sleep / Wake",
+      "short_name": "Sleep/Wake",
+      "description": "Log sleep or wake up with 1 tap to calculate circadian rhythm",
+      "url": "https://sandeep33999.github.io/To_Do_custom/?action=sleep_toggle",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Quick Note Scratchpad",
+      "short_name": "New Note",
+      "description": "Quickly write down ideas, exam notes, and lecture memos",
+      "url": "https://sandeep33999.github.io/To_Do_custom/?action=quick_note",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Add Mission / Deadline",
+      "short_name": "Add Mission",
+      "description": "Record an upcoming assignment, lab, or exam mission",
+      "url": "https://sandeep33999.github.io/To_Do_custom/?action=add_mission",
       "icons": [
         {
           "src": "icons/icon-192.png",
