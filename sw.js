@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chronoflow-v2';
+const CACHE_NAME = 'auraflow-v3';
 const ASSETS = [
   './',
   './index.html',

@@ -56,12 +56,39 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("file:///android_asset/index.html");
     }
 
+    private long backPressedTime = 0;
+    private android.widget.Toast backToast;
+
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
+        if (webView == null) {
             super.onBackPressed();
+            return;
         }
+
+        // Check if any modal or overlay is open in the web application
+        webView.evaluateJavascript("(function() { return (typeof window.handleAndroidBack === 'function') ? window.handleAndroidBack() : false; })();", value -> {
+            // "true" means a modal or form was open and was closed by the web app
+            if ("true".equalsIgnoreCase(value) || "\"true\"".equalsIgnoreCase(value)) {
+                return;
+            }
+
+            // If history can go back, do that
+            if (webView.canGoBack()) {
+                webView.goBack();
+                return;
+            }
+
+            // Standard double-tap back to exit application
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - backPressedTime < 2000) {
+                if (backToast != null) backToast.cancel();
+                finish();
+            } else {
+                backPressedTime = currentTime;
+                backToast = android.widget.Toast.makeText(MainActivity.this, "Press back again to exit AuraFlow", android.widget.Toast.LENGTH_SHORT);
+                backToast.show();
+            }
+        });
     }
 }

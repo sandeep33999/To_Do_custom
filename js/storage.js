@@ -337,15 +337,20 @@ const ChronoStorage = {
     return updated;
   },
 
-  // Deadlines
+  // Deadlines (Missions)
   getDeadlines() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.DEADLINES);
-      if (!data) {
-        this.saveDeadlines(DEFAULT_DEADLINES);
-        return [...DEFAULT_DEADLINES];
-      }
-      return JSON.parse(data);
+      let list = data ? JSON.parse(data) : [...DEFAULT_DEADLINES];
+      if (!data) this.saveDeadlines(DEFAULT_DEADLINES);
+      
+      // Chronological sort: by dueDate ascending, then dueTime ascending
+      list.sort((a, b) => {
+        const timeA = (a.dueDate || '9999-12-31') + ' ' + (a.dueTime || '23:59');
+        const timeB = (b.dueDate || '9999-12-31') + ' ' + (b.dueTime || '23:59');
+        return timeA.localeCompare(timeB);
+      });
+      return list;
     } catch (e) {
       return [...DEFAULT_DEADLINES];
     }
@@ -363,6 +368,13 @@ const ChronoStorage = {
     return dl;
   },
 
+  updateDeadline(updatedDl) {
+    let list = this.getDeadlines();
+    list = list.map(d => d.id === updatedDl.id ? { ...d, ...updatedDl } : d);
+    this.saveDeadlines(list);
+    return updatedDl;
+  },
+
   toggleDeadlineComplete(id) {
     const list = this.getDeadlines().map(dl => {
       if (dl.id === id) return { ...dl, completed: !dl.completed };
@@ -374,6 +386,44 @@ const ChronoStorage = {
   deleteDeadline(id) {
     const list = this.getDeadlines().filter(dl => dl.id !== id);
     this.saveDeadlines(list);
+  },
+
+  // Active Real-Time Sleep Session (for 1-tap "Sleep Now" -> "Wake Now")
+  getActiveSleepSession() {
+    try {
+      const raw = localStorage.getItem('auraflow_active_sleep_session');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  setActiveSleepSession(session) {
+    if (!session) {
+      localStorage.removeItem('auraflow_active_sleep_session');
+    } else {
+      localStorage.setItem('auraflow_active_sleep_session', JSON.stringify(session));
+    }
+    window.dispatchEvent(new CustomEvent('chronoflow:sleep_session_updated', { detail: session }));
+  },
+
+  // Free Buffer Time Custom Activity
+  getBufferActivity(dateStr) {
+    try {
+      const data = JSON.parse(localStorage.getItem('auraflow_buffer_activity') || '{}');
+      return data[dateStr] || 'Free buffer time / Relax';
+    } catch (e) {
+      return 'Free buffer time / Relax';
+    }
+  },
+
+  setBufferActivity(dateStr, activity) {
+    try {
+      const data = JSON.parse(localStorage.getItem('auraflow_buffer_activity') || '{}');
+      data[dateStr] = activity;
+      localStorage.setItem('auraflow_buffer_activity', JSON.stringify(data));
+      window.dispatchEvent(new CustomEvent('chronoflow:buffer_activity_updated', { detail: { date: dateStr, activity } }));
+    } catch (e) {}
   },
 
   // Sleep Logs
@@ -405,7 +455,7 @@ const ChronoStorage = {
     return log;
   },
 
-  // Daily Reviews
+  // Daily Reviews & Journal Reflections
   getDailyReviews() {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.REVIEWS) || '{}');
@@ -418,6 +468,51 @@ const ChronoStorage = {
     const all = this.getDailyReviews();
     all[dateStr] = review;
     localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(all));
+  },
+
+  getJournalEntries() {
+    try {
+      const raw = localStorage.getItem('auraflow_journal_entries');
+      if (raw) return JSON.parse(raw);
+      // Migrate from existing daily reviews if any exist
+      const reviews = this.getDailyReviews();
+      const entries = [];
+      Object.keys(reviews).forEach(d => {
+        if (reviews[d] && reviews[d].notes) {
+          entries.push({
+            id: 'rev-' + d,
+            date: d,
+            timestamp: reviews[d].savedAt || new Date().toISOString(),
+            notes: reviews[d].notes
+          });
+        }
+      });
+      return entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveJournalEntry(entry) {
+    const entries = this.getJournalEntries();
+    const existingIndex = entries.findIndex(e => e.id === entry.id || e.date === entry.date);
+    if (existingIndex >= 0) {
+      entries[existingIndex] = { ...entries[existingIndex], ...entry };
+    } else {
+      entries.unshift(entry);
+    }
+    localStorage.setItem('auraflow_journal_entries', JSON.stringify(entries));
+    // Also save in daily reviews for review compatibility
+    this.saveDailyReview(entry.date, { date: entry.date, notes: entry.notes, savedAt: entry.timestamp });
+    window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
+    return entry;
+  },
+
+  deleteJournalEntry(id) {
+    let entries = this.getJournalEntries();
+    entries = entries.filter(e => e.id !== id);
+    localStorage.setItem('auraflow_journal_entries', JSON.stringify(entries));
+    window.dispatchEvent(new CustomEvent('chronoflow:journal_updated', { detail: entries }));
   },
 
   // Full backup Export / Import
@@ -465,3 +560,4 @@ const ChronoStorage = {
 };
 
 window.ChronoStorage = ChronoStorage;
+window.AuraStorage = ChronoStorage;

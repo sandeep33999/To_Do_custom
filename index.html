@@ -2,10 +2,10 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Dynamic Life & Study Scheduler with smart sleep adjustment, slot-based class timetables, and automatic rescheduling.">
-  <meta name="theme-color" content="#090d16">
-  <title>Chronoflow — Dynamic Life & Study Scheduler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="AuraFlow — Dynamic biological rhythm, timetable and mission engine with smart sleep rescheduling and offline alarms.">
+  <meta name="theme-color" content="#070b12">
+  <title>AuraFlow — Dynamic Rhythm & Mission Scheduler</title>
 
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
@@ -13,10 +13,10 @@
   <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <!-- Google Fonts: Inter & Outfit -->
+  <!-- Google Fonts: Inter, Outfit, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -29,57 +29,23 @@
       <div class="nav-left">
         <div class="brand-logo">
           <div class="logo-icon-pulse">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="10" stroke-width="2"/>
               <polyline points="12 6 12 12 16 14" stroke-width="2"/>
             </svg>
           </div>
-          <span class="brand-name">Chrono<span class="gradient-text">flow</span></span>
+          <span class="brand-name">Aura<span class="gradient-text">Flow</span></span>
         </div>
         
         <div class="live-clock-badge" id="live-clock-badge">
           <span class="pulse-dot"></span>
           <span id="header-time">00:00:00</span>
           <span class="date-sep">•</span>
-          <span id="header-date">Loading...</span>
+          <span id="header-date">Today</span>
         </div>
       </div>
 
       <div class="nav-right">
-        <!-- Emergency Time Button -->
-        <button id="btn-emergency-time" class="btn-chip btn-emergency" title="Insert unplanned free time / pause">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-          <span>Emergency Break</span>
-        </button>
-
-        <!-- Sleep / Wake Ripple Button -->
-        <button id="btn-sleep-adjust" class="btn-chip btn-sleep" title="Log sleep or wake time to dynamically ripple schedule">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <span>Smart Sleep</span>
-        </button>
-
-        <!-- Focus Mode Launch Button -->
-        <button id="btn-enter-focus" class="btn-chip btn-focus" title="Enter Distraction-Free Focus Mode">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M3 12h2m14 0h2M12 3v2m0 14v2"></path>
-          </svg>
-          <span>Focus Mode</span>
-        </button>
-
-        <!-- Sync Native Phone Alarms -->
-        <button id="btn-sync-alarms" class="btn-chip btn-sync-alarms" title="Sync today's timetable to your Android Clock & Calendar alarms (.ics)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-          <span>Sync Alarms</span>
-        </button>
-
         <!-- Theme Toggle -->
         <button id="btn-theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
           <svg id="theme-icon-sun" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -99,16 +65,62 @@
         </button>
 
         <!-- PWA Install Button (hidden until prompt triggers) -->
-        <button id="btn-pwa-install" class="btn-chip btn-install hidden" title="Install Chronoflow on your device">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btn-pwa-install" class="btn-chip btn-install hidden" title="Install AuraFlow on your device">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          <span>Install App</span>
+          <span>Install</span>
         </button>
       </div>
     </header>
+
+    <!-- Top Action Row (Horizontal Scrollable Strip below brand title on mobile) -->
+    <div class="quick-action-strip" id="top-action-strip">
+      <!-- 5.3.2: + Icon for Quick Add Task -->
+      <button id="btn-top-quick-add" class="btn-chip btn-quick-add" title="Quickly Add New Slot or Task">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>+ Add</span>
+      </button>
+
+      <!-- Emergency Time Button -->
+      <button id="btn-emergency-time" class="btn-chip btn-emergency" title="Insert unplanned free time / pause">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Emergency Break</span>
+      </button>
+
+      <!-- Sleep / Wake Ripple Button -->
+      <button id="btn-sleep-adjust" class="btn-chip btn-sleep" title="Log sleep or wake time to dynamically ripple schedule">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span>Smart Sleep</span>
+      </button>
+
+      <!-- Focus Mode Launch Button -->
+      <button id="btn-enter-focus" class="btn-chip btn-focus" title="Enter Distraction-Free Focus Mode">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M3 12h2m14 0h2M12 3v2m0 14v2"></path>
+        </svg>
+        <span>Focus Mode</span>
+      </button>
+
+      <!-- Sync Native Phone Alarms -->
+      <button id="btn-sync-alarms" class="btn-chip btn-sync-alarms" title="Sync today's timetable to your Android Clock & Calendar alarms (.ics)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span>Sync Alarms</span>
+      </button>
+    </div>
 
     <!-- Navigation Tabs (Desktop Sub-Header / Mobile Bottom Bar) -->
     <nav class="nav-tabs-bar" aria-label="Main Navigation">
@@ -135,9 +147,9 @@
 
         <button class="nav-tab" data-view="deadlines">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
-          <span>Deadlines & Exams</span>
+          <span>Missions</span>
           <span class="badge-counter" id="badge-deadline-count">0</span>
         </button>
 
@@ -192,15 +204,15 @@
               <span id="now-category-tag" class="category-pill pill-study">Study</span>
             </div>
 
-            <div class="now-content-body">
-              <div class="now-timer-ring-container">
-                <svg class="progress-ring" width="170" height="170" viewBox="0 0 170 170">
-                  <circle class="ring-bg" cx="85" cy="85" r="72" stroke-width="10"/>
-                  <circle id="now-progress-circle" class="ring-indicator" cx="85" cy="85" r="72" stroke-width="10" stroke-dasharray="452.39" stroke-dashoffset="100"/>
+            <div class="now-content-body compact-body">
+              <div class="now-timer-ring-container compact-ring">
+                <svg class="progress-ring" width="96" height="96" viewBox="0 0 96 96">
+                  <circle class="ring-bg" cx="48" cy="48" r="40" stroke-width="7"/>
+                  <circle id="now-progress-circle" class="ring-indicator" cx="48" cy="48" r="40" stroke-width="7" stroke-dasharray="251.32" stroke-dashoffset="60"/>
                 </svg>
                 <div class="timer-center-content">
-                  <span id="now-remaining-time" class="timer-digits">42m 15s</span>
-                  <span class="timer-sublabel">REMAINING</span>
+                  <span id="now-remaining-time" class="timer-digits">42m</span>
+                  <span class="timer-sublabel">LEFT</span>
                 </div>
               </div>
 
@@ -213,29 +225,50 @@
                   </span>
                   <span id="now-slot-nature" class="meta-badge-flex">Flexible Slot</span>
                 </div>
+
+                <!-- 5.2: Buffer Time Dropdown Selector (when in free time) -->
+                <div id="buffer-activity-container" class="buffer-activity-container hidden">
+                  <label for="buffer-activity-select" class="buffer-label">What are you doing now?</label>
+                  <select id="buffer-activity-select" class="form-input-sm buffer-select">
+                    <option value="Free buffer time / Relax">Free buffer time / Relax</option>
+                    <option value="☕ Coffee & Quick Snack">☕ Coffee & Quick Snack</option>
+                    <option value="🚶 Short Walk & Stretching">🚶 Short Walk & Stretching</option>
+                    <option value="📖 Reading / Casual Learning">📖 Reading / Casual Learning</option>
+                    <option value="🔋 Quick Power Nap">🔋 Quick Power Nap</option>
+                    <option value="🎧 Music & Wind Down">🎧 Music & Wind Down</option>
+                    <option value="📝 Reviewing Notes Ahead">📝 Reviewing Notes Ahead</option>
+                  </select>
+                </div>
+
                 <p id="now-task-notes" class="task-notes-text">Tackle deadline priorities or problem solving.</p>
               </div>
+            </div>
+
+            <!-- 5.1: Instant Undo Banner for Done / Skip -->
+            <div id="now-undo-banner" class="now-undo-banner hidden">
+              <span id="now-undo-text">Task marked as finished.</span>
+              <button id="btn-now-undo" class="btn-undo-action" type="button">↩ Undo</button>
             </div>
 
             <!-- QUICK ACTION TOOLBAR FOR CURRENT TASK -->
             <div class="now-actions-bar">
               <button id="btn-action-done" class="btn-action btn-action-done" title="Mark this task finished early">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                 <span>Done Early</span>
               </button>
 
               <button id="btn-action-extend" class="btn-action btn-action-extend" title="Need more time? Extend by 15 mins">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>+15m Delay</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+15m</span>
               </button>
 
               <button id="btn-action-skip" class="btn-action btn-action-skip" title="Skip this task today">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-                <span>Skip Task</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                <span>Skip</span>
               </button>
 
               <button id="btn-action-delete" class="btn-action btn-action-delete" title="Delete for today or permanently">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 <span>Delete</span>
               </button>
             </div>
@@ -273,15 +306,23 @@
           <div class="section-card-header">
             <div class="header-title-group">
               <h3>Today's Adaptive Timeline</h3>
-              <span id="timeline-date-label" class="header-sub">Monday • Auto-rescheduled around your slots</span>
+              <span id="timeline-date-label" class="header-sub">Auto-rescheduled around your slots</span>
             </div>
 
             <div class="header-action-group">
               <button id="btn-quick-add-task" class="btn-primary-sm">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>Add Slot / Task</span>
+                <span>Add Slot</span>
               </button>
             </div>
+          </div>
+
+          <!-- 5.1: Timeline Filter Pills (All / Pending / Done / Skipped) -->
+          <div class="timeline-filter-bar">
+            <button class="filter-chip active" data-timeline-filter="all">All</button>
+            <button class="filter-chip" data-timeline-filter="pending">Pending</button>
+            <button class="filter-chip" data-timeline-filter="completed">Completed</button>
+            <button class="filter-chip" data-timeline-filter="skipped">Skipped</button>
           </div>
 
           <!-- Timeline items list -->
@@ -297,7 +338,7 @@
         <div class="view-header-row">
           <div>
             <h2>Weekly Timetable & Slots</h2>
-            <p class="section-subtitle">Manage recurring class slots (non-continuous), fixed lab blocks, study sessions, and mess timings.</p>
+            <p class="section-subtitle">Manage recurring class slots, fixed lab blocks, study sessions, and mess timings.</p>
           </div>
           <button id="btn-add-slot-modal" class="btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -307,13 +348,13 @@
 
         <!-- Day Filter Tabs (Mon, Tue, Wed, Thu, Fri, Sat, Sun, All) -->
         <div class="day-filter-bar">
-          <button class="day-chip active" data-day="Mon">Monday</button>
-          <button class="day-chip" data-day="Tue">Tuesday</button>
-          <button class="day-chip" data-day="Wed">Wednesday</button>
-          <button class="day-chip" data-day="Thu">Thursday</button>
-          <button class="day-chip" data-day="Fri">Friday</button>
-          <button class="day-chip" data-day="Sat">Saturday</button>
-          <button class="day-chip" data-day="Sun">Sunday</button>
+          <button class="day-chip active" data-day="Mon">Mon</button>
+          <button class="day-chip" data-day="Tue">Tue</button>
+          <button class="day-chip" data-day="Wed">Wed</button>
+          <button class="day-chip" data-day="Thu">Thu</button>
+          <button class="day-chip" data-day="Fri">Fri</button>
+          <button class="day-chip" data-day="Sat">Sat</button>
+          <button class="day-chip" data-day="Sun">Sun</button>
           <button class="day-chip" data-day="All">All Recurring</button>
         </div>
 
@@ -322,16 +363,16 @@
         </div>
       </section>
 
-      <!-- ================= VIEW 3: DEADLINES & EXAMS ================= -->
+      <!-- ================= VIEW 3: MISSIONS (DEADLINES & EXAMS) ================= -->
       <section id="view-deadlines" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Deadlines, Assignments & Exams</h2>
-            <p class="section-subtitle">Keep your high-stake examinations, project deliverables, and problem sets prioritized.</p>
+            <h2>Missions & Examinations</h2>
+            <p class="section-subtitle">High-impact deliverables ordered chronologically by due date & time.</p>
           </div>
           <button id="btn-add-deadline-modal" class="btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>Add Deadline</span>
+            <span>Add Mission</span>
           </button>
         </div>
 
@@ -345,40 +386,151 @@
         <div class="view-header-row">
           <div>
             <h2>Sleep Tracker & Smart Wake</h2>
-            <p class="section-subtitle">Track your actual sleep recovery and configure automatic morning adjustments.</p>
+            <p class="section-subtitle">Real-time sleep tracking, circadian rhythms, and adaptive morning ripple.</p>
           </div>
-          <button id="btn-open-sleep-modal-2" class="btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <span>Log Sleep / Wake Now</span>
+          <button id="btn-open-sleep-modal-2" class="btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+            <span>Manual Entry</span>
           </button>
         </div>
 
-        <!-- Sleep Stats Grid -->
+        <!-- 3.1: 1-Tap Sleep / Wake Action Card (No complex form needed!) -->
+        <div class="sleep-session-card" id="sleep-session-card">
+          <div class="sleep-session-info">
+            <div class="sleep-status-badge" id="sleep-status-badge">
+              <span class="pulse-dot"></span>
+              <span id="sleep-status-text">CURRENTLY AWAKE</span>
+            </div>
+            <h3 id="sleep-session-headline" class="sleep-headline">Ready for rest tonight?</h3>
+            <p id="sleep-session-subtext" class="sleep-subtext">Tap "Sleep Now" when you go to bed. AuraFlow will count your exact sleep and automatically calculate your wake up.</p>
+          </div>
+
+          <div class="sleep-session-actions">
+            <button id="btn-quick-sleep-now" class="btn-sleep-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span>🌙 Log Sleep Now</span>
+            </button>
+
+            <button id="btn-quick-wake-now" class="btn-wake-primary hidden">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+              </svg>
+              <span>☀️ Wake Up Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sleep Stats Grid (3.2 & 3.4: Target & Bedtime editable directly!) -->
         <div class="stats-overview-grid">
-          <div class="stat-card">
-            <div class="stat-label">Target Sleep Goal</div>
+          <div class="stat-card editable-stat" id="card-edit-target-sleep" title="Click to edit target sleep">
+            <div class="stat-header-flex">
+              <span class="stat-label">Target Sleep</span>
+              <span class="edit-hint-icon">✏️</span>
+            </div>
             <div id="stat-target-sleep" class="stat-value">7.5 hrs</div>
-            <div class="stat-sub">Configured standard</div>
+            <div class="stat-inline-edit hidden" id="wrap-edit-target-sleep">
+              <input type="number" id="input-edit-target-sleep" class="form-input-sm" step="0.5" min="4" max="12" value="7.5">
+              <button class="btn-chip-sm" id="btn-save-inline-target">Save</button>
+            </div>
+            <div class="stat-sub">Tap to change goal</div>
           </div>
+
           <div class="stat-card">
-            <div class="stat-label">Last 7-Day Average</div>
+            <div class="stat-label">7-Day Average</div>
             <div id="stat-avg-sleep" class="stat-value">7.4 hrs</div>
-            <div class="stat-sub text-success">Healthy recovery rhythm</div>
+            <div class="stat-sub text-success" id="stat-avg-status">Restored rhythm</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Standard Bedtime</div>
+
+          <div class="stat-card editable-stat" id="card-edit-bedtime" title="Click to edit standard bedtime">
+            <div class="stat-header-flex">
+              <span class="stat-label">Standard Bedtime</span>
+              <span class="edit-hint-icon">✏️</span>
+            </div>
             <div id="stat-bedtime-cfg" class="stat-value">01:00 AM</div>
-            <div class="stat-sub">Adaptive wake: 08:30 AM</div>
+            <div class="stat-inline-edit hidden" id="wrap-edit-bedtime">
+              <input type="time" id="input-edit-bedtime" class="form-input-sm" value="01:00">
+              <button class="btn-chip-sm" id="btn-save-inline-bedtime">Save</button>
+            </div>
+            <div class="stat-sub">Tap to change routine</div>
           </div>
+
           <div class="stat-card">
-            <div class="stat-label">Morning Ripple Mode</div>
-            <div class="stat-value text-accent">Active</div>
-            <div class="stat-sub">Shifts flexible routines</div>
+            <div class="stat-label">Morning Ripple</div>
+            <div class="stat-value text-accent" id="stat-ripple-status">Active</div>
+            <div class="stat-sub">Protects fixed slots</div>
+          </div>
+        </div>
+
+        <!-- 3.6: Two Gaussian Distribution Curves -->
+        <div class="charts-card-section">
+          <!-- Graph 1: Night Sleep & Deep Sleep Gaussian Distribution -->
+          <div class="analytics-card">
+            <div class="analytics-card-header">
+              <div class="analytics-title-wrap">
+                <span class="chart-icon">🌌</span>
+                <div>
+                  <h4>Circadian Rhythm & Night Sleep Distribution</h4>
+                  <p class="chart-desc">7-Day Gaussian curve showing bedtime, wake time, and peak deep sleep midpoint.</p>
+                </div>
+              </div>
+            </div>
+            <div class="chart-canvas-container" id="curve-night-container">
+              <svg id="svg-night-curve" class="gaussian-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                <!-- Injected via JS -->
+              </svg>
+            </div>
+            <div class="curve-legend-row" id="night-curve-legend">
+              <span class="legend-item"><span class="legend-color color-bed"></span> Bedtime (~01:15 AM)</span>
+              <span class="legend-item"><span class="legend-color color-deep"></span> Peak Deep Sleep (~05:00 AM)</span>
+              <span class="legend-item"><span class="legend-color color-wake"></span> Wake Up (~08:45 AM)</span>
+            </div>
+          </div>
+
+          <!-- Graph 2: Daytime Naps Distribution Gaussian Curve -->
+          <div class="analytics-card" style="margin-top: 16px;">
+            <div class="analytics-card-header">
+              <div class="analytics-title-wrap">
+                <span class="chart-icon">⚡</span>
+                <div>
+                  <h4>Daytime Power Naps & Rest Window</h4>
+                  <p class="chart-desc">Quick 1-2 hour afternoon recovery naps and their restorative curve.</p>
+                </div>
+              </div>
+            </div>
+            <div class="chart-canvas-container" id="curve-nap-container">
+              <svg id="svg-nap-curve" class="gaussian-svg" viewBox="0 0 600 160" preserveAspectRatio="none">
+                <!-- Injected via JS -->
+              </svg>
+            </div>
+            <div class="curve-legend-row" id="nap-curve-legend">
+              <span class="legend-item"><span class="legend-color color-nap-start"></span> Nap Onset (13:30 - 15:00)</span>
+              <span class="legend-item"><span class="legend-color color-nap-peak"></span> Restorative Peak (~14:30)</span>
+              <span class="legend-item"><span class="legend-color color-nap-wake"></span> Refresh Window</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.5: Graphical 7-Day Sleep Duration Bar Chart -->
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>7-Day Sleep Duration Analysis</h3>
+            <span class="header-sub">Daily actual vs 7.5h target</span>
+          </div>
+          <div class="sleep-barchart-container" id="sleep-barchart-container">
+            <!-- Injected via JS -->
           </div>
         </div>
 
         <!-- Sleep History Table / Cards -->
-        <div class="timeline-section-card">
+        <div class="timeline-section-card" style="margin-top: 20px;">
           <div class="section-card-header">
             <h3>Recent Sleep Log History</h3>
           </div>
@@ -393,20 +545,16 @@
         <div class="view-header-row">
           <div>
             <h2>Daily Productivity & Habit Review</h2>
-            <p class="section-subtitle">Evaluate your execution, track completed vs skipped tasks, and build momentum.</p>
+            <p class="section-subtitle">Evaluate your daily execution, track completion, and record insights.</p>
           </div>
-          <button id="btn-save-review" class="btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            <span>Save Reflection</span>
-          </button>
         </div>
 
         <div class="review-dashboard-grid">
           <div class="review-score-card">
             <div class="score-ring-wrap">
-              <svg class="progress-ring" width="160" height="160" viewBox="0 0 160 160">
-                <circle class="ring-bg" cx="80" cy="80" r="68" stroke-width="12"/>
-                <circle id="review-score-circle" class="ring-indicator ring-success" cx="80" cy="80" r="68" stroke-width="12" stroke-dasharray="427.25" stroke-dashoffset="85"/>
+              <svg class="progress-ring" width="140" height="140" viewBox="0 0 140 140">
+                <circle class="ring-bg" cx="70" cy="70" r="58" stroke-width="10"/>
+                <circle id="review-score-circle" class="ring-indicator ring-success" cx="70" cy="70" r="58" stroke-width="10" stroke-dasharray="364.42" stroke-dashoffset="60"/>
               </svg>
               <div class="score-center-text">
                 <span id="review-completion-percent" class="score-number">85%</span>
@@ -415,20 +563,39 @@
             </div>
 
             <div class="review-stat-summary">
-              <div class="rev-stat"><span id="rev-completed-count" class="bold text-success">8</span> Completed</div>
-              <div class="rev-stat"><span id="rev-skipped-count" class="bold text-warning">1</span> Skipped</div>
-              <div class="rev-stat"><span id="rev-pending-count" class="bold text-muted">2</span> Remaining</div>
+              <div class="rev-stat"><span id="rev-completed-count" class="bold text-success">0</span> Completed</div>
+              <div class="rev-stat"><span id="rev-skipped-count" class="bold text-warning">0</span> Skipped</div>
+              <div class="rev-stat"><span id="rev-pending-count" class="bold text-muted">0</span> Remaining</div>
             </div>
           </div>
 
+          <!-- 2.1: Journal & Reflection with Save Button directly adjacent -->
           <div class="review-reflection-card">
             <h3>Today's Journal & Reflection</h3>
             <p class="card-desc">Write down what went well today, what caused friction, and notes for tomorrow's schedule.</p>
-            <textarea id="review-notes-input" class="form-textarea" rows="6" placeholder="Example: OS lecture was intense, finished SQL assignment on time. Tomorrow wake up early for Networks quiz..."></textarea>
+            <textarea id="review-notes-input" class="form-textarea" rows="4" placeholder="Example: Finished SQL assignment on time. Tomorrow wake up early for Networks quiz..."></textarea>
+            
+            <div class="reflection-save-row">
+              <button id="btn-save-review" class="btn-primary" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+                <span>Save Reflection</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="timeline-section-card">
+        <!-- 2.1: Saved Reflection & Journal History List with Timestamps and Delete Option -->
+        <div class="timeline-section-card" style="margin-top: 20px;">
+          <div class="section-card-header">
+            <h3>Saved Journal & Reflection History</h3>
+            <span id="journal-count-badge" class="header-sub">0 reflections recorded</span>
+          </div>
+          <div id="saved-journal-entries-list" class="journal-entries-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="timeline-section-card" style="margin-top: 20px;">
           <div class="section-card-header">
             <h3>Task Breakdown for Today</h3>
           </div>
@@ -633,7 +800,6 @@
           <span class="modal-icon">📅</span>
           <div>
             <h3 id="modal-task-title-heading">Create Timetable Slot / Task</h3>
-            <p class="modal-subtitle">Configure slot timings, recurrence, and whether it's fixed (like a class) or flexible.</p>
           </div>
         </div>
         <button class="modal-close-btn" data-close="modal-task">&times;</button>
@@ -654,7 +820,7 @@
               🔔 Timed Reminder / Alert
             </button>
           </div>
-          <small class="field-hint" id="nature-explanation">Time slots reserve a block on your daily schedule (e.g. Class, Study). Reminders only ring an exact alarm without occupying schedule blocks.</small>
+          <small class="field-hint" id="nature-explanation">Time slots reserve a block on your daily schedule. Reminders only ring an exact alarm without occupying schedule blocks.</small>
         </div>
 
         <div class="form-group">
@@ -738,46 +904,37 @@
     </div>
   </div>
 
-  <!-- 4. ADD DEADLINE / EXAM MODAL -->
+  <!-- 4. ADD / EDIT MISSION (DEADLINE & EXAM) MODAL -->
   <div id="modal-deadline" class="modal-backdrop hidden" role="dialog" aria-modal="true">
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="modal-icon">🎯</span>
           <div>
-            <h3>Add Deadline or Examination</h3>
-            <p class="modal-subtitle">Track important tests, assignments, and project submissions.</p>
+            <h3 id="modal-deadline-title-heading">Add Mission</h3>
           </div>
         </div>
         <button class="modal-close-btn" data-close="modal-deadline">&times;</button>
       </div>
 
       <form id="form-deadline" class="modal-body">
+        <input type="hidden" id="dl-edit-id">
+
         <div class="form-group">
-          <label for="dl-title">Title *</label>
-          <input type="text" id="dl-title" class="form-input" required placeholder="e.g. Mid-Sem Exam: Operating Systems">
+          <label for="dl-title">Subject Name *</label>
+          <input type="text" id="dl-title" class="form-input" required placeholder="Subject Name (e.g. Operating Systems Mid-Sem Exam)">
         </div>
 
-        <div class="form-group-row">
-          <div class="form-group">
-            <label for="dl-type">Type</label>
-            <select id="dl-type" class="form-input">
-              <option value="exam">Examination / Mid-Sem / Quiz</option>
-              <option value="assignment">Assignment / Problem Set</option>
-              <option value="project">Project Deliverable</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="dl-priority">Priority</label>
-            <select id="dl-priority" class="form-input">
-              <option value="high">High Impact</option>
-              <option value="medium" selected>Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label for="dl-type">Mission Type</label>
+          <select id="dl-type" class="form-input">
+            <option value="exam">Examination / Mid-Sem / Quiz</option>
+            <option value="assignment">Assignment / Problem Set</option>
+            <option value="project">Project Deliverable / Submission</option>
+          </select>
         </div>
 
+        <!-- 1(e): Unified Date & Time side-by-side in one place -->
         <div class="form-group-row">
           <div class="form-group">
             <label for="dl-due-date">Due Date *</label>
@@ -785,19 +942,19 @@
           </div>
 
           <div class="form-group">
-            <label for="dl-due-time">Due Time</label>
-            <input type="time" id="dl-due-time" class="form-input" value="23:59">
+            <label for="dl-due-time">Due Time *</label>
+            <input type="time" id="dl-due-time" class="form-input" value="23:59" required>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="dl-notes">Syllabus / Submission Notes</label>
+          <label for="dl-notes">Syllabus / Mission Notes</label>
           <textarea id="dl-notes" class="form-textarea" rows="2" placeholder="e.g. Chapters 1-5, submit PDF on portal"></textarea>
         </div>
 
         <div class="modal-footer">
           <button type="button" class="btn-secondary" data-close="modal-deadline">Cancel</button>
-          <button type="submit" class="btn-primary">Save Deadline</button>
+          <button type="submit" class="btn-primary" id="btn-submit-deadline">Save Mission</button>
         </div>
       </form>
     </div>
