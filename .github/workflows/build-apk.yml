@@ -23,11 +23,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install and Setup Gradle 8.7
+      - name: Install Gradle 8.7
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle-8.7-bin.zip
           echo "$PWD/gradle-8.7/bin" >> $GITHUB_PATH
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Bundle Web Application into Android Assets
         run: |
@@ -50,6 +54,7 @@ jobs:
           name: Chronoflow-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+          if-no-files-found: error
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
