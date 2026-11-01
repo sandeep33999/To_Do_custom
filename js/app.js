@@ -1073,6 +1073,16 @@ const App = {
       });
     }
 
+    // Sync Native Android Phone Alarms (.ics)
+    const btnSyncAlarms = document.getElementById('btn-sync-alarms');
+    const btnSyncAlarmsSettings = document.getElementById('btn-sync-alarms-settings');
+    if (btnSyncAlarms) {
+      btnSyncAlarms.addEventListener('click', () => this.downloadICSAlarms());
+    }
+    if (btnSyncAlarmsSettings) {
+      btnSyncAlarmsSettings.addEventListener('click', () => this.downloadICSAlarms());
+    }
+
     // Export JSON Backup
     const btnExport = document.getElementById('btn-export-backup');
     if (btnExport) {
@@ -1166,6 +1176,20 @@ const App = {
       installBtn.classList.add('hidden');
       ChronoNotifications.showToast('App installed successfully!', 'success');
     });
+  },
+
+  downloadICSAlarms() {
+    const todayStr = ChronoScheduler.getTodayDateStr();
+    const icsContent = ChronoScheduler.generateICS(todayStr);
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chronoflow_alarms_${todayStr}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+    ChronoNotifications.playChime('done');
+    ChronoNotifications.showToast('Alarms File Downloaded!', 'success', 'Open it with your Android Calendar/Clock to set loud device alarms.');
   }
 };
 

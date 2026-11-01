@@ -448,6 +448,53 @@ const ChronoScheduler = {
       completionRate,
       tasks: totalTasks
     };
+  },
+
+  // --- Android Native Calendar & Alarm Sync (.ics Generator) ---
+  generateICS(dateStr) {
+    const schedule = this.resolveScheduleForDate(dateStr);
+    const dateFormatted = dateStr.replace(/-/g, ''); // YYYYMMDD
+
+    let ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Chronoflow//Life & Study Scheduler//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:Chronoflow Schedule'
+    ];
+
+    schedule.items.forEach(item => {
+      if (item.isSkipped) return;
+
+      const [sH, sM] = item.startTime.split(':');
+      const [eH, eM] = item.endTime.split(':');
+
+      const dtStart = `${dateFormatted}T${sH.padStart(2, '0')}${sM.padStart(2, '0')}00`;
+      const dtEnd = `${dateFormatted}T${eH.padStart(2, '0')}${eM.padStart(2, '0')}00`;
+      const uid = `chronoflow-${item.id}-${dateFormatted}@chronoflow.local`;
+
+      ics.push('BEGIN:VEVENT');
+      ics.push(`UID:${uid}`);
+      ics.push(`DTSTAMP:${dtStart}Z`);
+      ics.push(`DTSTART:${dtStart}`);
+      ics.push(`DTEND:${dtEnd}`);
+      ics.push(`SUMMARY:${item.title}`);
+      ics.push(`DESCRIPTION:${item.notes || 'Scheduled activity in Chronoflow'}`);
+      ics.push(`STATUS:CONFIRMED`);
+
+      // Add Native Android Alarm Reminder 5 minutes before
+      ics.push('BEGIN:VALARM');
+      ics.push('TRIGGER:-PT5M');
+      ics.push('ACTION:AUDIO');
+      ics.push(`DESCRIPTION:Reminder: ${item.title} starts in 5 minutes`);
+      ics.push('END:VALARM');
+
+      ics.push('END:VEVENT');
+    });
+
+    ics.push('END:VCALENDAR');
+    return ics.join('\r\n');
   }
 };
 

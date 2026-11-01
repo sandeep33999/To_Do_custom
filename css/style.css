@@ -289,6 +289,16 @@ h1, h2, h3, h4 {
   background: rgba(56, 189, 248, 0.22);
 }
 
+.btn-sync-alarms {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.btn-sync-alarms:hover {
+  background: rgba(16, 185, 129, 0.22);
+}
+
 .btn-install {
   background: var(--accent-gradient);
   color: #ffffff;
