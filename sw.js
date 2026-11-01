@@ -1,21 +1,29 @@
-const CACHE_NAME = 'chronoflow-v1';
+const CACHE_NAME = 'chronoflow-v2';
 const ASSETS = [
   './',
   './index.html',
+  './manifest.json',
   './css/style.css',
-  './js/app.js',
+  './js/storage.js',
   './js/scheduler.js',
   './js/notifications.js',
-  './js/storage.js',
-  './manifest.json',
+  './js/app.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './icons/icon-192.svg',
   './icons/icon-512.svg'
 ];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS).catch(err => console.warn('Cache add error:', err));
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn('Cache asset skipped:', asset, err);
+        }
+      }
     })
   );
   self.skipWaiting();
@@ -35,7 +43,6 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Navigation or asset caching strategy: Cache First, fallback to Network
   if (e.request.method !== 'GET') return;
   
   e.respondWith(

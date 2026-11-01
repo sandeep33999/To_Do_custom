@@ -1,24 +1,86 @@
 {
   "name": "Chronoflow — Dynamic Life & Study Scheduler",
   "short_name": "Chronoflow",
-  "description": "Smart, dynamic personal time scheduler that ripples your schedule dynamically around sleep, classes, exams, and unplanned delays.",
-  "start_url": "./index.html",
+  "id": "https://sandeep33999.github.io/To_Do_custom/",
+  "start_url": "https://sandeep33999.github.io/To_Do_custom/",
+  "scope": "https://sandeep33999.github.io/To_Do_custom/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#090d16",
-  "theme_color": "#090d16",
+  "background_color": "#080b13",
+  "theme_color": "#080b13",
+  "description": "Smart, dynamic personal timetable and routine scheduler that automatically ripples around sleep, classes, exams, and unplanned delays.",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "productivity",
+    "education"
+  ],
   "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "icons/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Chronoflow Dashboard on Desktop"
+    },
+    {
+      "src": "icons/screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chronoflow Mobile Adaptive Schedule"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard & Timeline",
+      "short_name": "Dashboard",
+      "description": "View today's live activities and countdown",
+      "url": "https://sandeep33999.github.io/To_Do_custom/",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

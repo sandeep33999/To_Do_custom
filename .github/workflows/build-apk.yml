@@ -26,6 +26,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
       - name: Bundle Web Application into Android Assets
         run: |
           mkdir -p android/app/src/main/assets
@@ -36,26 +41,10 @@ jobs:
           cp -r icons android/app/src/main/assets/
           echo "Assets bundled successfully."
 
-      - name: Cache Gradle Packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Grant Execute Permission to Gradlew
-        run: |
-          cd android
-          gradle wrapper
-          chmod +x gradlew
-
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -68,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v1.0.0-${{ github.run_number }}
+          tag_name: v1.0.${{ github.run_number }}
           name: Chronoflow Android APK v1.0.${{ github.run_number }}
           body: |
             ### 📱 Chronoflow Native Android App
