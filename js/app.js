@@ -740,6 +740,37 @@ const App = {
       });
     }
 
+    // Activity Nature (Scheduled Slot vs Reminder)
+    const btnNatureSlot = document.getElementById('btn-nature-slot');
+    const btnNatureReminder = document.getElementById('btn-nature-reminder');
+    const natureInput = document.getElementById('task-form-nature');
+    const durationGroup = document.getElementById('task-form-duration-container');
+    const fixedGroup = document.getElementById('task-form-fixed-container');
+    const labelStart = document.getElementById('label-task-start');
+    const titleInput = document.getElementById('task-form-title');
+
+    if (btnNatureSlot && btnNatureReminder) {
+      btnNatureSlot.addEventListener('click', () => {
+        btnNatureSlot.classList.add('active');
+        btnNatureReminder.classList.remove('active');
+        if (natureInput) natureInput.value = 'slot';
+        if (durationGroup) durationGroup.style.display = '';
+        if (fixedGroup) fixedGroup.style.display = '';
+        if (labelStart) labelStart.textContent = 'Start Time *';
+        if (titleInput) titleInput.placeholder = 'e.g. Operating Systems Slot B, Mess Breakfast, Self-Study';
+      });
+
+      btnNatureReminder.addEventListener('click', () => {
+        btnNatureReminder.classList.add('active');
+        btnNatureSlot.classList.remove('active');
+        if (natureInput) natureInput.value = 'reminder';
+        if (durationGroup) durationGroup.style.display = 'none';
+        if (fixedGroup) fixedGroup.style.display = 'none';
+        if (labelStart) labelStart.textContent = 'Reminder Alarm Time *';
+        if (titleInput) titleInput.placeholder = 'e.g. Take medicine, Pay hostel fee, Submit quiz';
+      });
+    }
+
     // Form Task Submit
     const formTask = document.getElementById('form-task');
     if (formTask) {
@@ -936,6 +967,18 @@ const App = {
     document.getElementById('task-form-fixed').checked = true;
     document.getElementById('task-form-notes').value = '';
 
+    // Reset nature to slot
+    const btnSlot = document.getElementById('btn-nature-slot');
+    const btnReminder = document.getElementById('btn-nature-reminder');
+    if (btnSlot) btnSlot.classList.add('active');
+    if (btnReminder) btnReminder.classList.remove('active');
+    const natureInput = document.getElementById('task-form-nature');
+    if (natureInput) natureInput.value = 'slot';
+    const durationGroup = document.getElementById('task-form-duration-container');
+    const fixedGroup = document.getElementById('task-form-fixed-container');
+    if (durationGroup) durationGroup.style.display = '';
+    if (fixedGroup) fixedGroup.style.display = '';
+
     // Check weekday boxes by default
     document.querySelectorAll('input[name="task-days"]').forEach(box => {
       box.checked = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(box.value);
@@ -950,14 +993,34 @@ const App = {
     if (!slot) return;
 
     document.getElementById('task-form-id').value = slot.id;
-    document.getElementById('modal-task-title-heading').textContent = 'Edit Timetable Slot';
+    document.getElementById('modal-task-title-heading').textContent = slot.isReminder ? 'Edit Reminder' : 'Edit Timetable Slot';
     document.getElementById('task-form-title').value = slot.title;
     document.getElementById('task-form-category').value = slot.category || 'class';
     document.getElementById('task-form-priority').value = slot.priority || 'medium';
     document.getElementById('task-form-start').value = slot.startTime;
-    document.getElementById('task-form-duration').value = slot.duration;
+    document.getElementById('task-form-duration').value = slot.duration || 60;
     document.getElementById('task-form-fixed').checked = !!slot.isFixed;
     document.getElementById('task-form-notes').value = slot.notes || '';
+
+    const btnSlot = document.getElementById('btn-nature-slot');
+    const btnReminder = document.getElementById('btn-nature-reminder');
+    const natureInput = document.getElementById('task-form-nature');
+    const durationGroup = document.getElementById('task-form-duration-container');
+    const fixedGroup = document.getElementById('task-form-fixed-container');
+
+    if (slot.isReminder) {
+      if (btnReminder) btnReminder.classList.add('active');
+      if (btnSlot) btnSlot.classList.remove('active');
+      if (natureInput) natureInput.value = 'reminder';
+      if (durationGroup) durationGroup.style.display = 'none';
+      if (fixedGroup) fixedGroup.style.display = 'none';
+    } else {
+      if (btnSlot) btnSlot.classList.add('active');
+      if (btnReminder) btnReminder.classList.remove('active');
+      if (natureInput) natureInput.value = 'slot';
+      if (durationGroup) durationGroup.style.display = '';
+      if (fixedGroup) fixedGroup.style.display = '';
+    }
 
     document.querySelectorAll('input[name="task-days"]').forEach(box => {
       box.checked = slot.days && (slot.days.includes(box.value) || slot.days.includes('Everyday'));
@@ -972,9 +1035,10 @@ const App = {
     const category = document.getElementById('task-form-category').value;
     const priority = document.getElementById('task-form-priority').value;
     const startTime = document.getElementById('task-form-start').value;
-    const duration = parseInt(document.getElementById('task-form-duration').value, 10);
-    const isFixed = document.getElementById('task-form-fixed').checked;
+    const durationVal = parseInt(document.getElementById('task-form-duration').value, 10);
+    const isFixedVal = document.getElementById('task-form-fixed').checked;
     const notes = document.getElementById('task-form-notes').value.trim();
+    const isReminder = document.getElementById('task-form-nature').value === 'reminder';
 
     const selectedDays = [];
     document.querySelectorAll('input[name="task-days"]:checked').forEach(box => {
@@ -984,11 +1048,12 @@ const App = {
     const taskObj = {
       id: id || ('task-' + Date.now()),
       title,
-      category,
+      category: isReminder ? 'personal' : category,
       priority,
       startTime,
-      duration,
-      isFixed,
+      duration: isReminder ? 5 : (durationVal || 60),
+      isFixed: isReminder ? true : isFixedVal,
+      isReminder: !!isReminder,
       days: selectedDays.length === 7 ? ['Everyday'] : selectedDays,
       notes
     };
@@ -998,7 +1063,22 @@ const App = {
       ChronoNotifications.showToast(`Updated: ${title}`, 'success');
     } else {
       ChronoStorage.addTask(taskObj);
-      ChronoNotifications.showToast(`Added slot: ${title}`, 'success');
+      ChronoNotifications.showToast(`Added ${isReminder ? 'reminder' : 'slot'}: ${title}`, 'success');
+    }
+
+    // Schedule exact Android native alarm if running inside APK
+    if (window.AndroidNative && window.AndroidNative.scheduleNativeAlarm) {
+      try {
+        const [h, m] = startTime.split(':').map(Number);
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        if (d.getTime() > Date.now()) {
+          const alarmLabel = (isReminder ? '🔔 Reminder: ' : 'Upcoming Slot: ') + title;
+          window.AndroidNative.scheduleNativeAlarm(taskObj.id, alarmLabel, notes || 'Scheduled in Chronoflow', d.getTime());
+        }
+      } catch (err) {
+        console.warn('Native alarm schedule failed', err);
+      }
     }
 
     this.closeModal('modal-task');

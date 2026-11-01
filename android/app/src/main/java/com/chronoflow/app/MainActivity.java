@@ -25,7 +25,7 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         setContentView(webView);
 
-        // Request notification permissions for Android 13+
+        // Request notification permissions for Android 13+ (Tiramisu)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
@@ -41,6 +41,9 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
+        // Register Native JavaScript Bridge
+        webView.addJavascriptInterface(new WebAppInterface(this), "AndroidNative");
+
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -49,7 +52,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Load local bundled web application (100% offline ready)
+        // Load bundled web assets
         webView.loadUrl("file:///android_asset/index.html");
     }
 

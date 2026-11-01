@@ -641,6 +641,21 @@
 
       <form id="form-task" class="modal-body">
         <input type="hidden" id="task-form-id">
+        <input type="hidden" id="task-form-nature" value="slot">
+
+        <!-- Activity Nature: Scheduled Slot vs Reminder -->
+        <div class="form-group">
+          <label>Activity Nature</label>
+          <div class="duration-selector-row">
+            <button type="button" class="btn-chip-choice active" id="btn-nature-slot" data-nature="slot">
+              ⏱️ Scheduled Time Slot
+            </button>
+            <button type="button" class="btn-chip-choice" id="btn-nature-reminder" data-nature="reminder">
+              🔔 Timed Reminder / Alert
+            </button>
+          </div>
+          <small class="field-hint" id="nature-explanation">Time slots reserve a block on your daily schedule (e.g. Class, Study). Reminders only ring an exact alarm without occupying schedule blocks.</small>
+        </div>
 
         <div class="form-group">
           <label for="task-form-title">Activity Title *</label>
@@ -674,18 +689,18 @@
 
         <div class="form-group-row">
           <div class="form-group">
-            <label for="task-form-start">Start Time *</label>
+            <label for="task-form-start" id="label-task-start">Start Time *</label>
             <input type="time" id="task-form-start" class="form-input" required value="09:00">
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="task-form-duration-container">
             <label for="task-form-duration">Duration (Minutes) *</label>
             <input type="number" id="task-form-duration" class="form-input" required min="10" max="600" step="5" value="60">
           </div>
         </div>
 
         <!-- Fixed vs Flexible Toggle -->
-        <div class="form-group flex-toggle-box">
+        <div class="form-group flex-toggle-box" id="task-form-fixed-container">
           <div class="flex-toggle-text">
             <strong>Fixed Slot Commitment</strong>
             <p>Fixed slots (Class timetable, Exams, Mess) are strictly anchored and cannot be shifted automatically. Flexible slots (Self-study, gym) will ripple around them.</p>
