@@ -29,12 +29,23 @@
       <div class="nav-left">
         <div class="brand-logo">
           <div class="logo-icon-pulse">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10" stroke-width="2"/>
-              <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+              <defs>
+                <linearGradient id="zenLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#B9E54C" />
+                  <stop offset="100%" stop-color="#6F9A23" />
+                </linearGradient>
+              </defs>
+              <circle cx="14" cy="14" r="11" stroke="currentColor" stroke-opacity="0.18" stroke-width="2" />
+              <path d="M7 14C7 10.134 10.134 7 14 7C17.866 7 21 10.134 21 14" stroke="url(#zenLogoGrad)" stroke-width="2.6" stroke-linecap="round" />
+              <path d="M10 14.5C11.5 12 12.5 12 14 14.5C15.5 17 16.5 17 18 14.5" stroke="url(#zenLogoGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="14" cy="7" r="2.2" fill="#B9E54C" />
             </svg>
           </div>
-          <span class="brand-name">Zen<span class="gradient-text">Rhythm</span></span>
+          <div class="brand-text-wrap">
+            <span class="brand-name">Zen<span class="gradient-text">Rhythm</span></span>
+            <span class="brand-tagline">Your Life. Your Rhythm. Your Intelligence.</span>
+          </div>
         </div>
         
         <div class="live-clock-badge" id="live-clock-badge">
@@ -76,49 +87,39 @@
       </div>
     </header>
 
-    <!-- Top Action Row (Horizontal Scrollable Strip below brand title on mobile) -->
+    <!-- Top Action Row (Equal 4-Column Grid covering entire row) -->
     <div class="quick-action-strip" id="top-action-strip">
-      <!-- 5.3.2: + Icon for Quick Add Task -->
-      <button id="btn-top-quick-add" class="btn-chip btn-quick-add" title="Quickly Add New Slot or Task">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <button id="btn-top-quick-add" class="btn-chip btn-quick-add" title="Quickly Add New Slot">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        <span>+ Add</span>
+        <span>Add Slot</span>
       </button>
 
       <!-- Emergency Time Button -->
-      <button id="btn-emergency-time" class="btn-chip btn-emergency" title="Insert unplanned free time / pause">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button id="btn-emergency-time" class="btn-chip btn-emergency" title="Insert unplanned pause">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
-        <span>Emergency Break</span>
+        <span>Pause</span>
       </button>
 
       <!-- Sleep / Wake Ripple Button -->
-      <button id="btn-sleep-adjust" class="btn-chip btn-sleep" title="Log sleep or wake time to dynamically ripple schedule">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button id="btn-sleep-adjust" class="btn-chip btn-sleep" title="Log sleep or wake rhythm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
-        <span>Smart Sleep</span>
+        <span>Sleep</span>
       </button>
 
       <!-- Focus Mode Launch Button -->
-      <button id="btn-enter-focus" class="btn-chip btn-focus" title="Enter Distraction-Free Focus Mode">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button id="btn-enter-focus" class="btn-chip btn-focus" title="Distraction-Free Focus Mode">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M3 12h2m14 0h2M12 3v2m0 14v2"></path>
         </svg>
-        <span>Focus Mode</span>
-      </button>
-
-      <!-- Sync Native Phone Alarms -->
-      <button id="btn-sync-alarms" class="btn-chip btn-sync-alarms" title="Sync today's timetable to your Android Clock & Calendar alarms (.ics)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
-        <span>Sync Alarms</span>
+        <span>Focus</span>
       </button>
     </div>
 
@@ -200,7 +201,7 @@
         <!-- Ripple Banner (shows if morning sleep ripple or emergency time is active) -->
         <div id="ripple-status-banner" class="ripple-banner hidden">
           <div class="banner-content">
-            <span class="banner-icon">🌊</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12c3-4 6-4 9 0s6 4 9 0"/><path d="M2 17c3-4 6-4 9 0s6 4 9 0"/></svg>
             <span id="ripple-banner-text">Dynamic Ripple Active: Flexible tasks shifted +60m due to late sleep.</span>
           </div>
           <button id="btn-reset-ripple" class="btn-text">Reset to Standard</button>
@@ -243,22 +244,22 @@
                 <div id="buffer-activity-container" class="buffer-activity-container hidden">
                   <div class="buffer-header-row">
                     <span class="buffer-label">
-                      <span>⏱️</span>
-                      <span>What are you doing now?</span>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span>Active Buffer Activity</span>
                     </span>
                     <span class="buffer-badge">LOGGING TIME</span>
                   </div>
                   <div class="buffer-select-wrapper">
                     <select id="buffer-activity-select" class="buffer-select-styled">
-                      <option value="Free buffer time / Relax">🛋️ Free buffer time / Relax</option>
-                      <option value="☕ Coffee & Quick Snack">☕ Coffee & Quick Snack</option>
-                      <option value="🚶 Short Walk & Stretching">🚶 Short Walk & Stretching</option>
-                      <option value="📖 Reading / Casual Learning">📖 Reading / Casual Learning</option>
-                      <option value="🔋 Quick Power Nap">🔋 Quick Power Nap</option>
-                      <option value="🎧 Music & Wind Down">🎧 Music & Wind Down</option>
-                      <option value="📝 Reviewing Notes Ahead">📝 Reviewing Notes Ahead</option>
-                      <option value="📱 Social Media / Browsing">📱 Social Media / Browsing</option>
-                      <option value="🧹 Chores & Room Cleanup">🧹 Chores & Room Cleanup</option>
+                      <option value="Free buffer time / Relax">Free buffer time / Relax</option>
+                      <option value="Coffee & Quick Snack">Coffee & Quick Snack</option>
+                      <option value="Short Walk & Stretching">Short Walk & Stretching</option>
+                      <option value="Reading / Casual Learning">Reading / Casual Learning</option>
+                      <option value="Quick Power Nap (20m)">Quick Power Nap (20m)</option>
+                      <option value="Music & Wind Down">Music & Wind Down</option>
+                      <option value="Reviewing Notes Ahead">Reviewing Notes Ahead</option>
+                      <option value="Social Media / Browsing">Social Media / Browsing</option>
+                      <option value="Chores & Room Cleanup">Chores & Room Cleanup</option>
                     </select>
                     <span class="select-chevron">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -273,7 +274,10 @@
             <!-- 5.1: Instant Undo Banner for Done / Skip -->
             <div id="now-undo-banner" class="now-undo-banner hidden">
               <span id="now-undo-text">Task marked as finished.</span>
-              <button id="btn-now-undo" class="btn-undo-action" type="button">↩ Undo</button>
+              <button id="btn-now-undo" class="btn-undo-action" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                <span>Undo</span>
+              </button>
             </div>
 
             <!-- QUICK ACTION TOOLBAR FOR CURRENT TASK -->
@@ -485,12 +489,15 @@
 
           <!-- Recent Buffer Activity Log Preview -->
           <div class="alloc-buffer-log-row">
-            <span class="buffer-log-title">⏱️ Active Buffer Time Activity:</span>
+            <span class="buffer-log-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Active Buffer:
+            </span>
             <span class="buffer-log-value" id="alloc-buffer-current-text">Free buffer time / Relax</span>
           </div>
         </div>
 
-        <!-- 3.1: 1-Tap Sleep / Wake Action Card (No complex form needed!) -->
+        <!-- 3.1: 1-Tap Sleep / Wake Action Card -->
         <div class="sleep-session-card" id="sleep-session-card">
           <div class="sleep-session-info">
             <div class="sleep-status-badge" id="sleep-status-badge">
@@ -498,19 +505,19 @@
               <span id="sleep-status-text">CURRENTLY AWAKE</span>
             </div>
             <h3 id="sleep-session-headline" class="sleep-headline">Ready for rest tonight?</h3>
-            <p id="sleep-session-subtext" class="sleep-subtext">Tap "Sleep Now" when you go to bed. ZenRhythm will count your exact sleep and automatically calculate your wake up.</p>
+            <p id="sleep-session-subtext" class="sleep-subtext">Tap "Log Sleep" when you go to bed. ZenRhythm precisely calculates your recovery and adjusts morning routines.</p>
           </div>
 
           <div class="sleep-session-actions">
             <button id="btn-quick-sleep-now" class="btn-sleep-primary">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
-              <span>🌙 Log Sleep Now</span>
+              <span>Log Sleep</span>
             </button>
 
             <button id="btn-quick-wake-now" class="btn-wake-primary hidden">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
                 <line x1="12" y1="1" x2="12" y2="3"></line>
                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -519,49 +526,53 @@
                 <line x1="1" y1="12" x2="3" y2="12"></line>
                 <line x1="21" y1="12" x2="23" y2="12"></line>
               </svg>
-              <span>☀️ Wake Up Now</span>
+              <span>Wake Up</span>
             </button>
           </div>
         </div>
 
-        <!-- Sleep Stats Grid (3.2 & 3.4: Target & Bedtime editable directly!) -->
+        <!-- Sleep Stats Grid -->
         <div class="stats-overview-grid">
           <div class="stat-card editable-stat" id="card-edit-target-sleep" title="Click to edit target sleep">
             <div class="stat-header-flex">
               <span class="stat-label">Target Sleep</span>
-              <span class="edit-hint-icon">✏️</span>
+              <span class="edit-hint-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </span>
             </div>
             <div id="stat-target-sleep" class="stat-value">7.5 hrs</div>
             <div class="stat-inline-edit hidden" id="wrap-edit-target-sleep">
               <input type="number" id="input-edit-target-sleep" class="form-input-sm" step="0.5" min="4" max="12" value="7.5">
               <button class="btn-chip-sm" id="btn-save-inline-target">Save</button>
             </div>
-            <div class="stat-sub">Tap to change goal</div>
+            <div class="stat-sub">Tap to edit goal</div>
           </div>
 
           <div class="stat-card">
             <div class="stat-label">7-Day Average</div>
             <div id="stat-avg-sleep" class="stat-value">7.4 hrs</div>
-            <div class="stat-sub text-success" id="stat-avg-status">Restored rhythm</div>
+            <div class="stat-sub text-success" id="stat-avg-status">Optimal rhythm</div>
           </div>
 
           <div class="stat-card editable-stat" id="card-edit-bedtime" title="Click to edit standard bedtime">
             <div class="stat-header-flex">
               <span class="stat-label">Standard Bedtime</span>
-              <span class="edit-hint-icon">✏️</span>
+              <span class="edit-hint-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </span>
             </div>
             <div id="stat-bedtime-cfg" class="stat-value">01:00 AM</div>
             <div class="stat-inline-edit hidden" id="wrap-edit-bedtime">
               <input type="time" id="input-edit-bedtime" class="form-input-sm" value="01:00">
               <button class="btn-chip-sm" id="btn-save-inline-bedtime">Save</button>
             </div>
-            <div class="stat-sub">Tap to change routine</div>
+            <div class="stat-sub">Tap to edit routine</div>
           </div>
 
           <div class="stat-card">
             <div class="stat-label">Morning Ripple</div>
             <div class="stat-value text-accent" id="stat-ripple-status">Active</div>
-            <div class="stat-sub">Protects fixed slots</div>
+            <div class="stat-sub">Dynamic protection</div>
           </div>
         </div>
 
@@ -571,7 +582,9 @@
           <div class="analytics-card">
             <div class="analytics-card-header">
               <div class="analytics-title-wrap">
-                <span class="chart-icon">🌌</span>
+                <span class="chart-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </span>
                 <div>
                   <h4>Circadian Rhythm & Night Sleep Cycle</h4>
                   <p class="chart-desc">7-Day sleep architecture showing bedtime, wake time, and restorative deep sleep stage.</p>
@@ -594,10 +607,12 @@
           <div class="analytics-card" style="margin-top: 16px;">
             <div class="analytics-card-header">
               <div class="analytics-title-wrap">
-                <span class="chart-icon">⚡</span>
+                <span class="chart-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </span>
                 <div>
                   <h4>Daytime Power Naps & Rest Window</h4>
-                  <p class="chart-desc">Quick 1-2 hour afternoon recovery naps and their restorative curve.</p>
+                  <p class="chart-desc">Afternoon recovery naps and restorative energy curves.</p>
                 </div>
               </div>
             </div>
@@ -845,9 +860,15 @@
             </div>
 
             <div class="archive-tab-bar">
-              <button class="archive-tab-btn active" data-archive-tab="tasks">✅ Completed Tasks (<span id="count-archive-tasks">0</span>)</button>
-              <button class="archive-tab-btn" data-archive-tab="reflections">📖 Reflections (<span id="count-archive-reflections">0</span>)</button>
-              <button class="archive-tab-btn" data-archive-tab="buffer">⏱️ Buffer Logs (<span id="count-archive-buffer">0</span>)</button>
+              <button class="archive-tab-btn active" data-archive-tab="tasks">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Completed Tasks (<span id="count-archive-tasks">0</span>)
+              </button>
+              <button class="archive-tab-btn" data-archive-tab="reflections">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Reflections (<span id="count-archive-reflections">0</span>)
+              </button>
+              <button class="archive-tab-btn" data-archive-tab="buffer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Buffer Logs (<span id="count-archive-buffer">0</span>)
+              </button>
             </div>
 
             <div id="archive-list-container" class="archive-list-container">
@@ -868,7 +889,9 @@
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon">🌙</span>
+          <span class="modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </span>
           <div>
             <h3>Smart Sleep & Wake Adjustment</h3>
             <p class="modal-subtitle">Ripples your morning schedule automatically based on actual sleep.</p>
@@ -891,8 +914,8 @@
         </div>
 
         <div class="callout-box">
-          <div class="callout-title">⚡ How Chronoflow adjusts:</div>
-          <p class="callout-text">Your morning wake time and flexible self-study routines will be shifted forward by the delay. Fixed commitments like Class Slots or Mess timings will NOT be broken, and study slots will neatly rebalance around them.</p>
+          <div class="callout-title">Schedule Adjustment Logic:</div>
+          <p class="callout-text">Your wake time and flexible routines shift forward to preserve sleep. Fixed commitments like Class Slots or Mess timings remain protected.</p>
         </div>
       </div>
 
@@ -908,7 +931,9 @@
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon">⚡</span>
+          <span class="modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </span>
           <div>
             <h3>Insert Emergency Free Time</h3>
             <p class="modal-subtitle">Inject an unplanned pause or urgent task right now without breaking fixed classes.</p>
@@ -947,7 +972,9 @@
     <div class="modal-window modal-lg">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon">📅</span>
+          <span class="modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </span>
           <div>
             <h3 id="modal-task-title-heading">Create Timetable Slot / Task</h3>
           </div>
@@ -964,10 +991,10 @@
           <label>Activity Nature</label>
           <div class="duration-selector-row">
             <button type="button" class="btn-chip-choice active" id="btn-nature-slot" data-nature="slot">
-              ⏱️ Scheduled Time Slot
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Scheduled Time Slot
             </button>
             <button type="button" class="btn-chip-choice" id="btn-nature-reminder" data-nature="reminder">
-              🔔 Timed Reminder / Alert
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>Timed Reminder / Alert
             </button>
           </div>
           <small class="field-hint" id="nature-explanation">Time slots reserve a block on your daily schedule. Reminders only ring an exact alarm without occupying schedule blocks.</small>
@@ -1059,7 +1086,9 @@
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon">🎯</span>
+          <span class="modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+          </span>
           <div>
             <h3 id="modal-deadline-title-heading">Add Mission</h3>
           </div>
@@ -1115,7 +1144,9 @@
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon text-danger">⚠️</span>
+          <span class="modal-icon text-danger">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </span>
           <div>
             <h3>Remove Task / Slot</h3>
             <p id="delete-modal-task-name" class="modal-subtitle">Computer Networks</p>
@@ -1128,7 +1159,9 @@
         <p>How would you like to delete this slot?</p>
         <div class="delete-options-grid">
           <button id="btn-delete-today-only" class="btn-delete-opt">
-            <div class="opt-icon">📅</div>
+            <div class="opt-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
             <div class="opt-text">
               <strong>Delete for TODAY Only</strong>
               <span>Keeps the slot in your recurring weekly timetable. Perfect for canceled classes or a one-day holiday.</span>
@@ -1136,7 +1169,9 @@
           </button>
 
           <button id="btn-delete-forever" class="btn-delete-opt opt-danger">
-            <div class="opt-icon">🗑️</div>
+            <div class="opt-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </div>
             <div class="opt-text">
               <strong>Delete FOREVER from Timetable</strong>
               <span>Completely removes this recurring task from your schedule.</span>
@@ -1156,7 +1191,9 @@
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon">📝</span>
+          <span class="modal-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </span>
           <div>
             <h3 id="modal-note-title-heading">Create Note</h3>
           </div>
@@ -1186,7 +1223,10 @@
           <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 8px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-main);">
               <input type="checkbox" id="note-form-pinned" style="accent-color: var(--accent-primary); width: 16px; height: 16px;">
-              <span>📌 Pin to Top</span>
+              <span style="display:inline-flex; align-items:center; gap:4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+                Pin to Top
+              </span>
             </label>
           </div>
         </div>

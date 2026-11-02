@@ -79,6 +79,9 @@ const App = {
 
     // 10. Handle URL Shortcuts (from Android Widgets or PWA shortcuts)
     this.handleUrlShortcuts();
+
+    // 11. Touch Swipe Navigation between Views (iPhone style)
+    this.initSwipeNavigation();
   },
 
   invalidateScheduleCache() {
@@ -120,7 +123,7 @@ const App = {
   },
 
   // ==========================================================================
-  // VIEW NAVIGATION
+  // VIEW NAVIGATION & TOUCH SWIPE
   // ==========================================================================
   initNavigation() {
     const tabs = document.querySelectorAll('.nav-tab');
@@ -130,6 +133,59 @@ const App = {
         this.switchView(targetView);
       });
     });
+  },
+
+  initSwipeNavigation() {
+    const viewOrder = ['dashboard', 'timetable', 'deadlines', 'analysis', 'notes', 'review', 'settings'];
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+
+    const onTouchStart = (e) => {
+      if (!e.changedTouches || e.changedTouches.length === 0) return;
+      // Do not intercept if user touches input, slider, modal, button, or horizontal chip scroller
+      if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden), .duration-selector-row, .day-filter-bar, .timeline-filter-bar, .archive-tab-bar, .slots-grid-container, canvas, svg, button')) {
+        return;
+      }
+      const touch = e.changedTouches[0];
+      startX = touch.screenX;
+      startY = touch.screenY;
+      startTime = Date.now();
+    };
+
+    const onTouchEnd = (e) => {
+      if (!e.changedTouches || e.changedTouches.length === 0) return;
+      if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden)')) {
+        return;
+      }
+      const touch = e.changedTouches[0];
+      const diffX = touch.screenX - startX;
+      const diffY = touch.screenY - startY;
+      const timeElapsed = Date.now() - startTime;
+
+      // Swipe requirements: distance > 50px, mostly horizontal (abs(X) > 1.35 * abs(Y)), duration < 600ms
+      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 1.35 && timeElapsed < 600) {
+        const currentView = this.activeView || 'dashboard';
+        const currentIndex = viewOrder.indexOf(currentView);
+        if (currentIndex === -1) return;
+
+        if (diffX < 0) {
+          // Swiped left -> move forward to next tab
+          if (currentIndex < viewOrder.length - 1) {
+            this.switchView(viewOrder[currentIndex + 1]);
+          }
+        } else {
+          // Swiped right -> move backward to previous tab
+          if (currentIndex > 0) {
+            this.switchView(viewOrder[currentIndex - 1]);
+          }
+        }
+      }
+    };
+
+    const container = document.querySelector('.main-content') || document.body;
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
   },
 
   switchView(viewName) {
@@ -577,8 +633,8 @@ const App = {
               <span class="timeline-title">${task.title}</span>
               <span class="category-pill pill-${task.category || 'study'}">${task.category || 'Task'}</span>
               ${task.isFixed ? '<span class="meta-badge-fixed">Fixed</span>' : '<span class="meta-badge-flex">Flexible</span>'}
-              ${task.isRescheduled ? `<span class="reschedule-tag" title="${task.rescheduleReason || 'Rescheduled'}">⚡ ${task.rescheduleReason || 'Shifted'}</span>` : ''}
-              ${task.isEmergency ? '<span class="reschedule-tag text-danger">⚠️ Emergency Break</span>' : ''}
+              ${task.isRescheduled ? `<span class="reschedule-tag" title="${task.rescheduleReason || 'Rescheduled'}">${task.rescheduleReason || 'Shifted'}</span>` : ''}
+              ${task.isEmergency ? '<span class="reschedule-tag text-danger">Emergency Break</span>' : ''}
               ${task.isSkipped ? '<span class="reschedule-tag text-warning">Skipped Today</span>' : ''}
             </div>
             ${task.notes ? `<div class="timeline-notes">${task.notes}</div>` : ''}
@@ -881,7 +937,7 @@ const App = {
     });
     if (window.ChronoNotifications) {
       ChronoNotifications.playChime('alert');
-      ChronoNotifications.showToast('🌙 Sleep session started. Rest well!', 'success');
+      ChronoNotifications.showToast('Sleep session started. Rest well!', 'success');
     }
     this.updateSleepSessionUI();
   },
@@ -927,14 +983,14 @@ const App = {
       ChronoStorage.updateDailyState(todayStr, s => ({ ...s, shiftMinutes: shift }));
       if (window.ChronoNotifications) {
         ChronoNotifications.showToast(
-          `☀️ Good morning! Logged ${actualHours} hrs`,
+          `Good morning! Logged ${actualHours} hrs`,
           'success',
           `Morning ripple applied (+${shift}m). Fixed classes remain locked.`
         );
       }
     } else {
       if (window.ChronoNotifications) {
-        ChronoNotifications.showToast(`☀️ Good morning! Logged ${actualHours} hrs sleep.`, 'success');
+        ChronoNotifications.showToast(`Good morning! Logged ${actualHours} hrs sleep.`, 'success');
       }
     }
 
@@ -1017,14 +1073,14 @@ const App = {
       if (btnSleepNow) btnSleepNow.classList.add('hidden');
       if (btnWakeNow) btnWakeNow.classList.remove('hidden');
       if (statusText) statusText.textContent = 'CURRENTLY ASLEEP';
-      if (headline) headline.textContent = '🌙 Sleep Session in Progress';
-      if (subtext) subtext.textContent = 'Resting now... Tap "Wake Up Now" as soon as you wake to complete your log.';
+      if (headline) headline.textContent = 'Sleep Session in Progress';
+      if (subtext) subtext.textContent = 'Resting now... Tap "Wake Up" when you rise.';
     } else {
       if (btnSleepNow) btnSleepNow.classList.remove('hidden');
       if (btnWakeNow) btnWakeNow.classList.add('hidden');
       if (statusText) statusText.textContent = 'CURRENTLY AWAKE';
       if (headline) headline.textContent = 'Ready for rest tonight?';
-      if (subtext) subtext.textContent = 'Tap "Sleep Now" when you go to bed. ZenRhythm will count your exact sleep duration.';
+      if (subtext) subtext.textContent = 'Tap "Log Sleep" when you go to bed. ZenRhythm precisely tracks your recovery.';
     }
   },
 
@@ -1040,7 +1096,7 @@ const App = {
 
     const headline = document.getElementById('sleep-session-headline');
     if (headline) {
-      headline.textContent = `🌙 Sleeping for ${hours}h ${mins}m ${secs}s`;
+      headline.textContent = `Sleeping for ${hours}h ${mins}m ${secs}s`;
     }
   },
 
@@ -1535,8 +1591,8 @@ const App = {
       } else {
         breakdownEl.innerHTML = stats.tasks.map(t => {
           let statusLabel = '<span class="text-muted">Pending</span>';
-          if (t.isCompleted) statusLabel = '<span class="text-success bold">✓ Completed</span>';
-          if (t.isSkipped) statusLabel = '<span class="text-warning bold">⚠ Skipped</span>';
+          if (t.isCompleted) statusLabel = '<span class="text-success bold">Completed</span>';
+          if (t.isSkipped) statusLabel = '<span class="text-warning bold">Skipped</span>';
 
           return `
             <div class="review-item-row">
@@ -1571,7 +1627,9 @@ const App = {
           return `
             <div class="journal-entry-card" data-journal-id="${item.id}">
               <div class="journal-entry-header">
-                <span class="journal-entry-time">🗓️ ${formattedDate}</span>
+                <span class="journal-entry-time">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>${formattedDate}
+                </span>
                 <button class="btn-text text-danger" onclick="App.deleteJournalEntry('${item.id}')">Delete</button>
               </div>
               <p class="journal-entry-text">${item.notes.replace(/\n/g, '<br>')}</p>
@@ -2053,7 +2111,7 @@ const App = {
         const d = new Date();
         d.setHours(h, m, 0, 0);
         if (d.getTime() > Date.now()) {
-          const alarmLabel = (isReminder ? '🔔 Reminder: ' : 'Upcoming Slot: ') + title;
+          const alarmLabel = (isReminder ? 'Reminder: ' : 'Upcoming Slot: ') + title;
           window.AndroidNative.scheduleNativeAlarm(taskObj.id, alarmLabel, notes || 'Scheduled in ZenRhythm', d.getTime());
         }
       } catch (err) {
@@ -2377,7 +2435,9 @@ const App = {
     if (notes.length === 0) {
       container.innerHTML = `
         <div class="empty-state-box" style="grid-column: 1 / -1; padding: 48px 24px;">
-          <div style="font-size: 2.2rem; margin-bottom: 8px;">📝</div>
+          <div style="margin-bottom: 12px; color: var(--text-muted);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
           <h3 style="color: var(--text-main); margin-bottom: 4px;">No Notes Found</h3>
           <p style="color: var(--text-muted); font-size: 0.9rem;">
             ${this.notesSearchQuery ? 'No notes matched your search query.' : 'Capture your first note, formula, or exam idea! Tap "+ New Note" above.'}
@@ -2400,12 +2460,16 @@ const App = {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
       }[tag] || tag));
 
+      const pinIcon = note.isPinned
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent-primary)" stroke="var(--accent-primary)" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`;
+
       return `
         <div class="note-card ${note.isPinned ? 'is-pinned' : ''}" data-note-id="${note.id}">
           <div class="note-card-header">
             <span class="note-card-tag ${catClass}">${catLabel}</span>
             <button class="note-pin-btn" onclick="App.togglePinNote('${note.id}')" title="${note.isPinned ? 'Unpin note' : 'Pin note to top'}">
-              ${note.isPinned ? '📌' : '📍'}
+              ${pinIcon}
             </button>
           </div>
           <h4 class="note-card-title">${escapeHtml(note.title)}</h4>
@@ -2413,9 +2477,15 @@ const App = {
           <div class="note-card-footer">
             <span class="note-date">${dateFormatted}</span>
             <div class="note-actions-row">
-              <button class="btn-text" onclick="App.copyNoteContent('${note.id}')" title="Copy to clipboard">📋 Copy</button>
-              <button class="btn-text" onclick="App.openEditNoteModal('${note.id}')" title="Edit note">✏️ Edit</button>
-              <button class="btn-text text-danger" onclick="App.deleteNote('${note.id}')" title="Delete note">🗑️</button>
+              <button class="btn-text" onclick="App.copyNoteContent('${note.id}')" title="Copy to clipboard">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px; margin-right:3px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy
+              </button>
+              <button class="btn-text" onclick="App.openEditNoteModal('${note.id}')" title="Edit note">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px; margin-right:3px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>Edit
+              </button>
+              <button class="btn-text text-danger" onclick="App.deleteNote('${note.id}')" title="Delete note">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -2472,7 +2542,9 @@ const App = {
         return `
           <div class="archive-item-card">
             <div class="archive-item-left">
-              <span class="archive-item-icon">✅</span>
+              <span class="archive-item-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
               <div>
                 <strong class="archive-item-title">${t.title || 'Untitled Task'}</strong>
                 <div class="archive-item-meta">
@@ -2503,7 +2575,9 @@ const App = {
           <div class="archive-item-card reflection-archive-card">
             <div style="width: 100%;">
               <div class="archive-card-header">
-                <span class="archive-item-meta">🗓️ ${dateStr}</span>
+                <span class="archive-item-meta">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>${dateStr}
+                </span>
                 <button class="btn-text text-danger" onclick="App.deleteJournalEntry('${r.id}')">Delete</button>
               </div>
               <p class="archive-reflection-text">${(r.notes || '').replace(/\n/g, '<br>')}</p>
@@ -2527,7 +2601,9 @@ const App = {
         return `
           <div class="archive-item-card">
             <div class="archive-item-left">
-              <span class="archive-item-icon">⏱️</span>
+              <span class="archive-item-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </span>
               <div>
                 <strong class="archive-item-title">${b.activity}</strong>
                 <div class="archive-item-meta">
