@@ -10,7 +10,8 @@ const STORAGE_KEYS = {
   SLEEP_LOGS: 'chronoflow_sleep_logs',
   DEADLINES: 'chronoflow_deadlines',
   REVIEWS: 'chronoflow_reviews',
-  THEME: 'chronoflow_theme'
+  THEME: 'chronoflow_theme',
+  ALARMS: 'zenrhythm_alarms'
 };
 
 const DEFAULT_CONFIG = {
@@ -682,10 +683,68 @@ const ChronoStorage = {
     }
   },
 
+  // Alarms Management
+  getAlarms() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.ALARMS);
+      if (data) return JSON.parse(data);
+      // Default initial alarms
+      const defaults = [
+        {
+          id: 'alarm-wake',
+          time: '08:30',
+          label: 'Morning Wake Up',
+          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          enabled: true
+        },
+        {
+          id: 'alarm-winddown',
+          time: '00:30',
+          label: 'Night Wind Down & Bedtime',
+          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          enabled: true
+        }
+      ];
+      this.saveAlarms(defaults);
+      return defaults;
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveAlarms(alarms) {
+    localStorage.setItem(STORAGE_KEYS.ALARMS, JSON.stringify(alarms));
+  },
+
+  addAlarm(alarm) {
+    const alarms = this.getAlarms();
+    alarms.push(alarm);
+    // Sort alarms by time
+    alarms.sort((a, b) => a.time.localeCompare(b.time));
+    this.saveAlarms(alarms);
+    return alarms;
+  },
+
+  toggleAlarm(id, enabled) {
+    const alarms = this.getAlarms();
+    const target = alarms.find(a => a.id === id);
+    if (target) {
+      target.enabled = (enabled !== undefined) ? enabled : !target.enabled;
+      this.saveAlarms(alarms);
+    }
+    return alarms;
+  },
+
+  deleteAlarm(id) {
+    const alarms = this.getAlarms().filter(a => a.id !== id);
+    this.saveAlarms(alarms);
+    return alarms;
+  },
+
   // Full backup Export / Import
   exportAllData() {
     const backup = {
-      version: '1.1',
+      version: '1.2',
       exportedAt: new Date().toISOString(),
       config: this.getConfig(),
       tasks: this.getTasks(),
@@ -695,7 +754,8 @@ const ChronoStorage = {
       reviews: this.getDailyReviews(),
       journalEntries: this.getJournalEntries(),
       notes: this.getNotes(),
-      bufferHistory: this.getBufferHistory()
+      bufferHistory: this.getBufferHistory(),
+      alarms: this.getAlarms()
     };
     return JSON.stringify(backup, null, 2);
   },
@@ -712,6 +772,7 @@ const ChronoStorage = {
       if (data.journalEntries) localStorage.setItem('zenrhythm_journal_entries', JSON.stringify(data.journalEntries));
       if (data.notes) localStorage.setItem('zenrhythm_notes', JSON.stringify(data.notes));
       if (data.bufferHistory) localStorage.setItem('zenrhythm_buffer_history', JSON.stringify(data.bufferHistory));
+      if (data.alarms) localStorage.setItem(STORAGE_KEYS.ALARMS, JSON.stringify(data.alarms));
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };

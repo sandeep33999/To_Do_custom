@@ -1043,19 +1043,19 @@ h1, h2, h3, h4 {
 
 /* Action Toolbar for Current Task */
 .now-actions-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
-  flex-wrap: wrap;
 }
 
 .btn-action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 6px 11px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 0.78rem;
@@ -1084,16 +1084,6 @@ h1, h2, h3, h4 {
   background: rgba(16, 185, 129, 0.25);
 }
 
-.btn-action-extend {
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.25);
-}
-
-.btn-action-extend:hover {
-  background: rgba(56, 189, 248, 0.22);
-}
-
 .btn-action-skip {
   background: rgba(245, 158, 11, 0.12);
   color: #fbbf24;
@@ -1108,7 +1098,6 @@ h1, h2, h3, h4 {
   background: rgba(244, 63, 94, 0.1);
   color: #fb7185;
   border-color: rgba(244, 63, 94, 0.2);
-  margin-left: auto;
 }
 
 .btn-action-delete:hover {
@@ -1270,16 +1259,11 @@ h1, h2, h3, h4 {
 }
 
 .timeline-row {
-  display: grid;
-  grid-template-columns: 24px 80px 1fr auto;
-  gap: 14px;
-  align-items: center;
-  padding: 14px 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
   position: relative;
+  margin-bottom: 14px;
 }
 
 /* Roadmap Spine & Milestones */
@@ -1287,26 +1271,26 @@ h1, h2, h3, h4 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
-  min-height: 48px;
+  width: 24px;
+  flex-shrink: 0;
   position: relative;
-  justify-content: center;
 }
 
 .roadmap-dot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
   z-index: 2;
   transition: all 0.2s ease;
   background: var(--bg-elevated);
   border: 2px solid var(--border-card);
   color: var(--text-muted);
+  margin-top: 12px;
 }
 
 .roadmap-dot.dot-completed {
@@ -1324,22 +1308,23 @@ h1, h2, h3, h4 {
   animation: pulseBeacon 2s infinite;
 }
 
-@keyframes pulseBeacon {
-  0% { box-shadow: 0 0 0 0 rgba(185, 229, 76, 0.7); }
-  70% { box-shadow: 0 0 0 8px rgba(185, 229, 76, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(185, 229, 76, 0); }
+.dot-active-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary);
 }
 
 .roadmap-dot.dot-pending {
   background: var(--bg-surface);
-  border: 2px solid rgba(245, 247, 239, 0.25);
+  border: 2px solid rgba(245, 247, 239, 0.22);
   color: var(--text-subtle);
 }
 
 .roadmap-line {
   position: absolute;
-  top: 32px;
-  bottom: -22px;
+  top: 36px;
+  bottom: -18px;
   width: 2px;
   background: linear-gradient(180deg, var(--border-card) 0%, rgba(245, 247, 239, 0.08) 100%);
   z-index: 1;
@@ -1349,39 +1334,34 @@ h1, h2, h3, h4 {
   display: none;
 }
 
-.roadmap-stop-badge {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--accent-primary);
-  margin-bottom: 2px;
+/* Roadmap Card Body - Full horizontal breathing room */
+.roadmap-card-body {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.story-chapter-tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-subtle);
-  margin-bottom: 2px;
-}
-
-.timeline-row:hover {
+.timeline-row:hover .roadmap-card-body {
   border-color: var(--border-active);
   background: var(--bg-card-hover);
   transform: translateX(2px);
 }
 
-.timeline-row.is-active-task {
+.timeline-row.is-active-task .roadmap-card-body {
   border-color: var(--accent-primary);
-  background: linear-gradient(90deg, rgba(185, 229, 76, 0.08) 0%, transparent 100%);
-  box-shadow: 0 0 18px rgba(185, 229, 76, 0.2);
+  background: linear-gradient(135deg, rgba(185, 229, 76, 0.07) 0%, var(--bg-surface) 100%);
+  box-shadow: 0 0 20px rgba(185, 229, 76, 0.16);
 }
 
-.timeline-row.is-completed-task {
-  opacity: 0.68;
+.timeline-row.is-completed-task .roadmap-card-body {
+  opacity: 0.65;
 }
 
 .timeline-row.is-completed-task .timeline-title {
@@ -1389,114 +1369,210 @@ h1, h2, h3, h4 {
   color: var(--text-muted);
 }
 
-.timeline-row.is-skipped-task {
-  opacity: 0.5;
+.timeline-row.is-skipped-task .roadmap-card-body {
+  opacity: 0.55;
   background: rgba(245, 158, 11, 0.04);
   border-style: dashed;
 }
 
-.timeline-time-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.time-start {
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.time-duration {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-subtle);
-}
-
-.timeline-body-col {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.timeline-title-row {
+/* Roadmap Card Header */
+.roadmap-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.timeline-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.reschedule-tag {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: var(--radius-pill);
-  background: rgba(192, 132, 252, 0.15);
-  color: #c084fc;
-}
-
-.timeline-notes {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.timeline-actions-col {
+.roadmap-chapter-info {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.btn-icon-sm {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  border: 1px solid var(--border-subtle);
+.roadmap-stop-badge {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+.roadmap-dot-sep {
+  font-size: 0.65rem;
+  color: var(--text-subtle);
+  opacity: 0.5;
+}
+
+.story-chapter-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.roadmap-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
   color: var(--text-muted);
+}
+
+.roadmap-time-badge .time-start {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.roadmap-time-badge .time-duration {
+  font-size: 0.72rem;
+  color: var(--text-subtle);
+}
+
+/* Roadmap Card Main */
+.roadmap-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timeline-title {
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-main);
+  margin: 0;
+  word-break: break-word;
+}
+
+.roadmap-pills-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.reschedule-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(192, 132, 252, 0.15);
+  color: #c084fc;
+}
+
+.tag-current-stop {
+  background: rgba(185, 229, 76, 0.16) !important;
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+}
+
+.timeline-notes {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+  word-break: break-word;
+}
+
+/* Roadmap Card Footer */
+.roadmap-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(245, 247, 239, 0.06);
+  margin-top: 2px;
+}
+
+.timeline-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.btn-timeline-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.btn-icon-sm:hover {
+.btn-timeline-action:hover {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--border-card);
 }
 
-.btn-icon-sm.btn-check-active {
-  background: var(--color-success);
-  color: #ffffff;
-  border-color: var(--color-success);
+.btn-timeline-action.is-completed {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.btn-timeline-skip {
+  background: rgba(245, 158, 11, 0.08);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-timeline-skip.is-skipped {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.btn-timeline-delete {
+  background: rgba(244, 63, 94, 0.06);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.18);
+  margin-left: auto;
+}
+
+.btn-timeline-delete:hover {
+  background: rgba(244, 63, 94, 0.15);
 }
 
 @media (max-width: 600px) {
   .timeline-row {
-    grid-template-columns: 20px 64px 1fr auto;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .roadmap-card-body {
+    padding: 12px 12px;
     gap: 8px;
-    padding: 12px 10px;
+  }
+  .timeline-title {
+    font-size: 0.96rem;
+  }
+  .timeline-notes {
+    font-size: 0.78rem;
+  }
+  .roadmap-track-col {
+    width: 20px;
   }
   .roadmap-dot {
-    width: 18px;
-    height: 18px;
-    font-size: 0.58rem;
+    width: 20px;
+    height: 20px;
+    font-size: 0.6rem;
+    margin-top: 10px;
   }
   .roadmap-line {
-    top: 26px;
-    bottom: -20px;
-  }
-  .time-start {
-    font-size: 0.82rem;
-  }
-  .timeline-actions-col {
-    gap: 4px;
+    top: 30px;
+    bottom: -16px;
   }
 }
 
@@ -2269,6 +2345,211 @@ h1, h2, h3, h4 {
 .danger-zone h4 {
   color: var(--color-danger);
   margin-bottom: 4px;
+}
+
+/* ==========================================================================
+   SET ALARM SECTION STYLES
+   ========================================================================== */
+.alarm-management-card {
+  margin-top: 6px;
+}
+
+.btn-alarm-sync {
+  background: rgba(185, 229, 76, 0.12);
+  color: var(--accent-primary);
+  border-color: rgba(185, 229, 76, 0.3);
+}
+
+.btn-alarm-sync:hover {
+  background: rgba(185, 229, 76, 0.22);
+}
+
+.alarm-create-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alarm-inputs-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 500px) {
+  .alarm-inputs-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alarm-time-input {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.alarm-days-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label-sm {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.alarm-day-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.alarm-day-chip {
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alarm-day-chip.active {
+  background: var(--accent-primary);
+  color: #0B0D0B;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(185, 229, 76, 0.3);
+}
+
+.alarm-create-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.alarms-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alarms-header-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.alarms-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alarm-item-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.alarm-item-card:hover {
+  border-color: var(--border-active);
+  background: var(--bg-card-hover);
+}
+
+.alarm-item-card.is-disabled {
+  opacity: 0.5;
+}
+
+.alarm-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alarm-time-display {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.alarm-label-display {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.alarm-days-display {
+  font-size: 0.72rem;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+}
+
+.alarm-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-alarm-test {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-alarm-test:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.btn-alarm-del {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  color: #fb7185;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-alarm-del:hover {
+  background: rgba(244, 63, 94, 0.2);
 }
 
 /* ==========================================================================

@@ -287,11 +287,6 @@
                 <span>Done Early</span>
               </button>
 
-              <button id="btn-action-extend" class="btn-action btn-action-extend" title="Need more time? Extend by 15 mins">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>+15m</span>
-              </button>
-
               <button id="btn-action-skip" class="btn-action btn-action-skip" title="Skip this task today">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
                 <span>Skip</span>
@@ -819,14 +814,67 @@
               <span>Enable Browser Notifications</span>
             </button>
 
-            <div class="divider"></div>
+            <!-- SET ALARMS SECTION -->
+            <div class="settings-card alarm-management-card">
+              <div class="card-title-row">
+                <div>
+                  <h3>Set Alarms & Clock</h3>
+                  <p class="card-desc">Configure wake-up alarms, study reminders, and sync with your phone clock.</p>
+                </div>
+                <button id="btn-sync-all-alarms" class="btn-chip btn-alarm-sync" title="Sync all alarms directly to Android Clock and Calendar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>Sync to Phone</span>
+                </button>
+              </div>
 
-            <h3>Android Native Alarms & Clock Sync</h3>
-            <p class="card-desc">Sync all of today's classes and study sessions directly into your Android Calendar and Clock with loud audio alarms that ring even with the screen locked or offline.</p>
-            <button id="btn-sync-alarms-settings" class="btn-primary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-              <span>Sync to Phone Alarms (.ics)</span>
-            </button>
+              <!-- Add New Alarm Form -->
+              <div class="alarm-create-box">
+                <div class="alarm-inputs-row">
+                  <div class="alarm-time-field">
+                    <label for="alarm-input-time">Alarm Time</label>
+                    <input type="time" id="alarm-input-time" class="form-input alarm-time-input" value="07:00">
+                  </div>
+                  <div class="alarm-label-field">
+                    <label for="alarm-input-label">Alarm Label</label>
+                    <input type="text" id="alarm-input-label" class="form-input" placeholder="e.g. Morning Wake Up / Study Sprint">
+                  </div>
+                </div>
+
+                <!-- Day selector pills -->
+                <div class="alarm-days-selector">
+                  <label class="field-label-sm">Repeat Days</label>
+                  <div class="alarm-day-chips" id="alarm-day-chips">
+                    <button type="button" class="alarm-day-chip active" data-day="Mon">Mon</button>
+                    <button type="button" class="alarm-day-chip active" data-day="Tue">Tue</button>
+                    <button type="button" class="alarm-day-chip active" data-day="Wed">Wed</button>
+                    <button type="button" class="alarm-day-chip active" data-day="Thu">Thu</button>
+                    <button type="button" class="alarm-day-chip active" data-day="Fri">Fri</button>
+                    <button type="button" class="alarm-day-chip" data-day="Sat">Sat</button>
+                    <button type="button" class="alarm-day-chip" data-day="Sun">Sun</button>
+                  </div>
+                </div>
+
+                <div class="alarm-create-actions">
+                  <button type="button" id="btn-add-alarm" class="btn-primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Save Alarm</span>
+                  </button>
+                  <button type="button" id="btn-test-chime" class="btn-secondary" title="Test audio chime sound">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>Test Chime</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- List of Configured Alarms -->
+              <div class="alarms-list-header">
+                <span class="alarms-header-title">Configured Alarms</span>
+                <span id="alarms-count-badge" class="badge-tag">2 Active</span>
+              </div>
+              <div id="alarms-list-container" class="alarms-list-container">
+                <!-- Rendered via App.renderAlarmsSection() -->
+              </div>
+            </div>
 
             <div class="divider"></div>
 

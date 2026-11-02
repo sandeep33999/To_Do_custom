@@ -38,6 +38,7 @@ const App = {
     this.initNotesActions();
     this.initSettings();
     this.initSettingsArchive();
+    this.initAlarmsSection();
     this.initPWA();
     this.initAndroidBridge();
 
@@ -142,43 +143,61 @@ const App = {
     const viewOrder = ['dashboard', 'timetable', 'deadlines', 'analysis', 'notes', 'review', 'settings'];
     let startX = 0;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
     let startTime = 0;
+    let isTracking = false;
 
     const onTouchStart = (e) => {
-      if (!e.changedTouches || e.changedTouches.length === 0) return;
-      // Do not intercept if user touches input, slider, modal, button, or horizontal chip scroller
-      if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden), .duration-selector-row, .day-filter-bar, .timeline-filter-bar, .archive-tab-bar, .slots-grid-container, canvas, svg, button')) {
+      if (!e.touches || e.touches.length !== 1) return;
+      // Do not intercept if user touches input, form elements, or open modal
+      if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden), .modal-card, .modal-dialog')) {
+        isTracking = false;
         return;
       }
-      const touch = e.changedTouches[0];
-      startX = touch.screenX;
-      startY = touch.screenY;
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      lastX = touch.clientX;
+      lastY = touch.clientY;
       startTime = Date.now();
+      isTracking = true;
     };
 
-    const onTouchEnd = (e) => {
-      if (!e.changedTouches || e.changedTouches.length === 0) return;
-      if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden)')) {
-        return;
+    const onTouchMove = (e) => {
+      if (!isTracking || !e.touches || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+    };
+
+    const onTouchFinish = (e) => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      // Use changedTouches if available
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        lastX = e.changedTouches[0].clientX;
+        lastY = e.changedTouches[0].clientY;
       }
-      const touch = e.changedTouches[0];
-      const diffX = touch.screenX - startX;
-      const diffY = touch.screenY - startY;
+
+      const diffX = lastX - startX;
+      const diffY = lastY - startY;
       const timeElapsed = Date.now() - startTime;
 
-      // Swipe requirements: distance > 50px, mostly horizontal (abs(X) > 1.35 * abs(Y)), duration < 600ms
-      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 1.35 && timeElapsed < 600) {
+      // Swipe requirements: horizontal travel >= 42px, mostly horizontal (abs(X) > 1.15 * abs(Y)), duration < 750ms
+      if (Math.abs(diffX) >= 42 && Math.abs(diffX) > Math.abs(diffY) * 1.15 && timeElapsed < 750) {
         const currentView = this.activeView || 'dashboard';
         const currentIndex = viewOrder.indexOf(currentView);
         if (currentIndex === -1) return;
 
         if (diffX < 0) {
-          // Swiped left -> move forward to next tab
+          // Swiped left (finger moved right-to-left) -> advance to next view
           if (currentIndex < viewOrder.length - 1) {
             this.switchView(viewOrder[currentIndex + 1]);
           }
         } else {
-          // Swiped right -> move backward to previous tab
+          // Swiped right (finger moved left-to-right) -> back to previous view
           if (currentIndex > 0) {
             this.switchView(viewOrder[currentIndex - 1]);
           }
@@ -186,18 +205,23 @@ const App = {
       }
     };
 
-    const container = document.querySelector('.main-content') || document.body;
-    container.addEventListener('touchstart', onTouchStart, { passive: true });
-    container.addEventListener('touchend', onTouchEnd, { passive: true });
+    // Attach to document with passive true for optimal scroll performance
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: true });
+    document.addEventListener('touchend', onTouchFinish, { passive: true });
+    document.addEventListener('touchcancel', onTouchFinish, { passive: true });
   },
 
   switchView(viewName) {
     this.activeView = viewName;
 
-    // Update Tab states
+    // Update Tab states & auto-scroll bottom nav into view
     document.querySelectorAll('.nav-tab').forEach(t => {
       if (t.getAttribute('data-view') === viewName) {
         t.classList.add('active');
+        try {
+          t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } catch (e) {}
       } else {
         t.classList.remove('active');
       }
@@ -221,6 +245,7 @@ const App = {
     if (viewName === 'settings') {
       this.loadSettingsForm();
       this.renderSettingsArchive();
+      this.renderAlarmsSection();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -659,13 +684,13 @@ const App = {
       else if (startHour >= 21 || startHour < 5) chapter = 'Rest & Recovery';
 
       let dotClass = 'dot-pending';
-      let dotIcon = `<span style="font-size: 0.6rem;">${idx + 1}</span>`;
+      let dotIcon = `<span>${idx + 1}</span>`;
       if (task.isCompleted) {
         dotClass = 'dot-completed';
-        dotIcon = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0D0B" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+        dotIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0B0D0B" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
       } else if (isActive) {
         dotClass = 'dot-active';
-        dotIcon = `<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary);"></span>`;
+        dotIcon = `<span class="dot-active-pulse"></span>`;
       }
 
       return `
@@ -677,55 +702,68 @@ const App = {
             <div class="roadmap-line"></div>
           </div>
 
-          <div class="timeline-time-col">
-            <span class="roadmap-stop-badge">Stop ${idx + 1}</span>
-            <span class="time-start">${ChronoScheduler.formatTime12(task.startTime)}</span>
-            <span class="time-duration">${task.duration}m</span>
-          </div>
-
-          <div class="timeline-body-col">
-            <span class="story-chapter-tag">${chapter}</span>
-            <div class="timeline-title-row">
-              <span class="timeline-title">${task.title}</span>
-              <span class="category-pill pill-${task.category || 'study'}">${task.category || 'Task'}</span>
-              ${task.isFixed ? '<span class="meta-badge-fixed">Fixed</span>' : '<span class="meta-badge-flex">Flexible</span>'}
-              ${isActive ? '<span class="reschedule-tag" style="background: rgba(185, 229, 76, 0.16); color: var(--accent-primary); border-color: var(--accent-primary);">Current Stop</span>' : ''}
-              ${task.isRescheduled ? `<span class="reschedule-tag" title="${task.rescheduleReason || 'Rescheduled'}">${task.rescheduleReason || 'Shifted'}</span>` : ''}
-              ${task.isEmergency ? '<span class="reschedule-tag text-danger">Emergency Break</span>' : ''}
-              ${task.isSkipped ? '<span class="reschedule-tag text-warning">Skipped</span>' : ''}
+          <div class="roadmap-card-body">
+            <div class="roadmap-card-header">
+              <div class="roadmap-chapter-info">
+                <span class="roadmap-stop-badge">STOP ${idx + 1}</span>
+                <span class="roadmap-dot-sep">•</span>
+                <span class="story-chapter-tag">${chapter}</span>
+              </div>
+              <div class="roadmap-time-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span class="time-start">${ChronoScheduler.formatTime12(task.startTime)}</span>
+                <span class="time-duration">(${task.duration}m)</span>
+              </div>
             </div>
-            ${task.notes ? `<div class="timeline-notes">${task.notes}</div>` : ''}
-          </div>
 
-          <div class="timeline-actions-col">
-            <!-- Complete Checkbox Button -->
-            <button class="btn-icon-sm ${task.isCompleted ? 'btn-check-active' : ''}" 
-                    onclick="App.toggleTaskComplete('${task.id}')" 
-                    title="${task.isCompleted ? 'Mark incomplete' : 'Mark completed'}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </button>
+            <div class="roadmap-card-main">
+              <h4 class="timeline-title">${task.title}</h4>
+              <div class="roadmap-pills-row">
+                <span class="category-pill pill-${task.category || 'study'}">${task.category || 'Task'}</span>
+                ${task.isFixed ? '<span class="meta-badge-fixed">Fixed</span>' : '<span class="meta-badge-flex">Flexible</span>'}
+                ${isActive ? '<span class="reschedule-tag tag-current-stop">Current Stop</span>' : ''}
+                ${task.isRescheduled ? `<span class="reschedule-tag" title="${task.rescheduleReason || 'Rescheduled'}">${task.rescheduleReason || 'Shifted'}</span>` : ''}
+                ${task.isEmergency ? '<span class="reschedule-tag text-danger">Emergency Break</span>' : ''}
+                ${task.isSkipped ? '<span class="reschedule-tag text-warning">Skipped</span>' : ''}
+              </div>
+              ${task.notes ? `<p class="timeline-notes">${task.notes}</p>` : ''}
+            </div>
 
-            <!-- Skip Button -->
-            <button class="btn-icon-sm" 
-                    onclick="App.toggleSkipTask('${task.id}', ${task.isSkipped})" 
-                    title="${task.isSkipped ? 'Unskip task' : 'Skip for today'}">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="5 4 15 12 5 20 5 4"/>
-                <line x1="19" y1="5" x2="19" y2="19"/>
-              </svg>
-            </button>
+            <div class="roadmap-card-footer">
+              <div class="timeline-actions-col">
+                <!-- Complete Button -->
+                <button class="btn-timeline-action ${task.isCompleted ? 'is-completed' : ''}" 
+                        onclick="App.toggleTaskComplete('${task.id}')" 
+                        title="${task.isCompleted ? 'Mark incomplete' : 'Mark completed'}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>${task.isCompleted ? 'Done' : 'Complete'}</span>
+                </button>
 
-            <!-- Delete Choice Button -->
-            <button class="btn-icon-sm" 
-                    onclick="App.promptDeleteTask('${task.id}', '${task.title.replace(/'/g, "\\'")}')" 
-                    title="Delete today or permanently">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
+                <!-- Skip Button -->
+                <button class="btn-timeline-action btn-timeline-skip ${task.isSkipped ? 'is-skipped' : ''}" 
+                        onclick="App.toggleSkipTask('${task.id}', ${task.isSkipped})" 
+                        title="${task.isSkipped ? 'Unskip task' : 'Skip for today'}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 4 15 12 5 20 5 4"/>
+                    <line x1="19" y1="5" x2="19" y2="19"/>
+                  </svg>
+                  <span>${task.isSkipped ? 'Unskip' : 'Skip'}</span>
+                </button>
+
+                <!-- Delete Choice Button -->
+                <button class="btn-timeline-action btn-timeline-delete" 
+                        onclick="App.promptDeleteTask('${task.id}', '${task.title.replace(/'/g, "\\'")}')" 
+                        title="Delete today or permanently">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -1741,16 +1779,6 @@ const App = {
       });
     }
 
-    // Current Card Action: Extend +15m
-    const btnExtend = document.getElementById('btn-action-extend');
-    if (btnExtend) {
-      btnExtend.addEventListener('click', () => {
-        if (!this.currentActiveItem) return;
-        const todayStr = ChronoScheduler.getTodayDateStr();
-        ChronoScheduler.extendTask(todayStr, this.currentActiveItem.id, 15);
-        if (window.ChronoNotifications) ChronoNotifications.showToast(`Extended +15m. Flexible tasks shifted.`, 'info');
-      });
-    }
 
     // Current Card Action: Skip
     const btnSkip = document.getElementById('btn-action-skip');
@@ -2310,6 +2338,177 @@ const App = {
   },
 
   // ==========================================================================
+  // SET ALARMS & PHONE CLOCK SECTION
+  // ==========================================================================
+  initAlarmsSection() {
+    // Day chips toggle
+    const dayChipsContainer = document.getElementById('alarm-day-chips');
+    if (dayChipsContainer) {
+      dayChipsContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.alarm-day-chip');
+        if (chip) {
+          chip.classList.toggle('active');
+        }
+      });
+    }
+
+    // Save Alarm Button
+    const btnAddAlarm = document.getElementById('btn-add-alarm');
+    if (btnAddAlarm) {
+      btnAddAlarm.addEventListener('click', () => {
+        const timeInput = document.getElementById('alarm-input-time');
+        const labelInput = document.getElementById('alarm-input-label');
+        if (!timeInput || !timeInput.value) {
+          if (window.ChronoNotifications) ChronoNotifications.showToast('Please select an alarm time', 'warning');
+          return;
+        }
+
+        const selectedDays = [];
+        document.querySelectorAll('#alarm-day-chips .alarm-day-chip.active').forEach(c => {
+          selectedDays.push(c.getAttribute('data-day'));
+        });
+
+        const newAlarm = {
+          id: 'alarm-' + Date.now(),
+          time: timeInput.value,
+          label: (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : 'Scheduled Alarm',
+          days: selectedDays.length > 0 ? selectedDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          enabled: true
+        };
+
+        ChronoStorage.addAlarm(newAlarm);
+        if (labelInput) labelInput.value = '';
+
+        if (window.ChronoNotifications) {
+          ChronoNotifications.playChime('start');
+          ChronoNotifications.showToast(`Alarm set for ${ChronoScheduler.formatTime12(newAlarm.time)}`, 'success');
+        }
+
+        this.renderAlarmsSection();
+      });
+    }
+
+    // Test Chime Button
+    const btnTestChime = document.getElementById('btn-test-chime');
+    if (btnTestChime) {
+      btnTestChime.addEventListener('click', () => {
+        this.testAlarmSound('Test Alarm');
+      });
+    }
+
+    // Sync to Phone Button
+    const btnSyncAllAlarms = document.getElementById('btn-sync-all-alarms');
+    if (btnSyncAllAlarms) {
+      btnSyncAllAlarms.addEventListener('click', () => {
+        this.syncAllAlarmsToPhone();
+      });
+    }
+
+    this.renderAlarmsSection();
+  },
+
+  renderAlarmsSection() {
+    const container = document.getElementById('alarms-list-container');
+    const countBadge = document.getElementById('alarms-count-badge');
+    if (!container) return;
+
+    const alarms = ChronoStorage.getAlarms() || [];
+    const activeCount = alarms.filter(a => a.enabled).length;
+
+    if (countBadge) {
+      countBadge.textContent = `${activeCount} Active`;
+    }
+
+    if (alarms.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state-box">
+          <p>No alarms configured yet. Use the form above to add your daily wake-up or study alarms.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = alarms.map(alarm => {
+      const daysText = (alarm.days && alarm.days.length === 7) ? 'Every day' : (alarm.days ? alarm.days.join(', ') : 'Daily');
+      const timeFormatted = ChronoScheduler.formatTime12(alarm.time);
+
+      return `
+        <div class="alarm-item-card ${alarm.enabled ? '' : 'is-disabled'}" data-alarm-id="${alarm.id}">
+          <div class="alarm-info-col">
+            <span class="alarm-time-display">${timeFormatted}</span>
+            <span class="alarm-label-display">${alarm.label}</span>
+            <span class="alarm-days-display">${daysText}</span>
+          </div>
+
+          <div class="alarm-item-actions">
+            <button class="btn-alarm-test" onclick="App.testAlarmSound('${alarm.label.replace(/'/g, "\\'")}')" title="Test alarm ring">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+
+            <label class="toggle-switch" title="Toggle Alarm On/Off">
+              <input type="checkbox" ${alarm.enabled ? 'checked' : ''} onchange="App.toggleAlarm('${alarm.id}', this.checked)">
+              <span class="slider"></span>
+            </label>
+
+            <button class="btn-alarm-del" onclick="App.deleteAlarm('${alarm.id}')" title="Delete Alarm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  toggleAlarm(alarmId, enabled) {
+    ChronoStorage.toggleAlarm(alarmId, enabled);
+    this.renderAlarmsSection();
+    if (window.ChronoNotifications) {
+      ChronoNotifications.showToast(enabled ? 'Alarm activated' : 'Alarm silenced', 'info');
+    }
+  },
+
+  deleteAlarm(alarmId) {
+    ChronoStorage.deleteAlarm(alarmId);
+    this.renderAlarmsSection();
+    if (window.ChronoNotifications) {
+      ChronoNotifications.showToast('Alarm removed', 'warning');
+    }
+  },
+
+  testAlarmSound(label = 'Alarm') {
+    if (window.ChronoNotifications) {
+      ChronoNotifications.playChime('alert');
+      ChronoNotifications.showToast(`Ringing chime for "${label}"`, 'info');
+    }
+  },
+
+  syncAllAlarmsToPhone() {
+    const alarms = ChronoStorage.getAlarms() || [];
+    const activeAlarms = alarms.filter(a => a.enabled);
+
+    // If running inside Android WebView wrapper with native alarm bridge
+    if (window.AndroidNative && window.AndroidNative.scheduleNativeAlarm) {
+      const today = new Date();
+      activeAlarms.forEach((a) => {
+        try {
+          const [hh, mm] = a.time.split(':').map(Number);
+          const alarmDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hh, mm, 0);
+          if (alarmDate.getTime() <= Date.now()) {
+            alarmDate.setDate(alarmDate.getDate() + 1);
+          }
+          window.AndroidNative.scheduleNativeAlarm(a.id, `ZenRhythm: ${a.label}`, `Rhythm alarm at ${ChronoScheduler.formatTime12(a.time)}`, alarmDate.getTime());
+        } catch (e) {
+          console.warn('Native alarm schedule err:', e);
+        }
+      });
+    }
+
+    // Also download full .ics for system calendar/clock
+    this.downloadICSAlarms();
+    if (window.ChronoNotifications) {
+      ChronoNotifications.showToast(`Synced ${activeAlarms.length} alarms to device clock!`, 'success');
+    }
+  },
   // PWA INSTALLATION SUPPORT
   // ==========================================================================
   initPWA() {
