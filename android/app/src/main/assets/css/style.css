@@ -120,6 +120,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: pan-y pinch-zoom;
 }
 
 body {
@@ -128,6 +129,11 @@ body {
     radial-gradient(circle at 15% 15%, rgba(0, 240, 170, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
   background-attachment: fixed;
+  touch-action: pan-y pinch-zoom;
+}
+
+.app-layout, .content-stage, .app-view {
+  touch-action: pan-y pinch-zoom;
 }
 
 /* Typography Utilities */
@@ -1345,6 +1351,8 @@ h1, h2, h3, h4 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
+  box-sizing: border-box;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1481,36 +1489,51 @@ h1, h2, h3, h4 {
 
 /* Roadmap Card Footer */
 .roadmap-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-top: 8px;
-  border-top: 1px solid rgba(245, 247, 239, 0.06);
-  margin-top: 2px;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid rgba(245, 247, 239, 0.08);
+  margin-top: 4px;
+  box-sizing: border-box;
 }
 
 .timeline-actions-col {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
   width: 100%;
-  justify-content: flex-end;
+  box-sizing: border-box;
 }
 
 .btn-timeline-action {
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 5px 10px;
+  padding: 7px 4px;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   color: var(--text-muted);
   cursor: pointer;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
   transition: all 0.2s ease;
+}
+
+.btn-timeline-action span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-timeline-action svg {
+  flex-shrink: 0;
 }
 
 .btn-timeline-action:hover {
@@ -1539,7 +1562,7 @@ h1, h2, h3, h4 {
   background: rgba(244, 63, 94, 0.06);
   color: #fb7185;
   border-color: rgba(244, 63, 94, 0.18);
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .btn-timeline-delete:hover {
@@ -1547,32 +1570,68 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 600px) {
+  /* Expand Dashboard and Timeline Cards to full width (red highlighted margins) */
+  .content-stage {
+    padding: 12px 6px 90px 6px;
+  }
+  #view-dashboard.app-view {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .timeline-section-card {
+    padding: 12px 8px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  .now-doing-hero {
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+  }
+  .pulse-energy-card {
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+  }
   .timeline-row {
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 12px;
   }
   .roadmap-card-body {
-    padding: 12px 12px;
+    padding: 12px 8px;
     gap: 8px;
   }
   .timeline-title {
-    font-size: 0.96rem;
+    font-size: 0.94rem;
   }
   .timeline-notes {
     font-size: 0.78rem;
   }
   .roadmap-track-col {
-    width: 20px;
+    width: 18px;
   }
   .roadmap-dot {
-    width: 20px;
-    height: 20px;
-    font-size: 0.6rem;
-    margin-top: 10px;
+    width: 18px;
+    height: 18px;
+    font-size: 0.58rem;
+    margin-top: 8px;
   }
   .roadmap-line {
-    top: 30px;
-    bottom: -16px;
+    top: 26px;
+    bottom: -14px;
+    left: 8px;
+  }
+  .timeline-actions-col {
+    gap: 4px;
+  }
+  .btn-timeline-action {
+    padding: 6px 2px;
+    font-size: 0.70rem;
+    gap: 3px;
+  }
+  .btn-timeline-action svg {
+    width: 11px;
+    height: 11px;
   }
 }
 
@@ -3726,4 +3785,58 @@ input:checked + .slider:before {
   font-size: 0.74rem;
   color: var(--text-muted);
 }
+
+/* ==========================================================================
+   VIEW 4: ALARMS SECTION STYLING
+   ========================================================================== */
+.alarms-view-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .alarms-view-grid {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: start;
+  }
+}
+
+.alarm-presets-strip {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset-chips-row .btn-chip {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-chips-row .btn-chip:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: rgba(185, 229, 76, 0.1);
+}
+
+.preset-chips-row .btn-chip:active {
+  transform: scale(0.96);
+}
+
 

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.2">
 </head>
 <body>
   <!-- App Shell -->
@@ -152,6 +152,18 @@
           </svg>
           <span>Missions</span>
           <span class="badge-counter hidden" id="badge-deadline-count" style="display: none;">0</span>
+        </button>
+
+        <button class="nav-tab" data-view="alarms">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="13" r="8"></circle>
+            <path d="M12 9v4l2 2"></path>
+            <path d="M5 3L2 6"></path>
+            <path d="M22 6l-3-3"></path>
+            <path d="M6.38 18.7L4 21"></path>
+            <path d="M17.64 18.67L20 21"></path>
+          </svg>
+          <span>Alarms</span>
         </button>
 
         <button class="nav-tab" data-view="analysis">
@@ -411,7 +423,101 @@
         </div>
       </section>
 
-      <!-- ================= VIEW 4: ANALYSIS (TIME ALLOCATION & SLEEP RHYTHM) ================= -->
+      <!-- ================= VIEW 4: ALARMS & WAKE-UP CLOCK ================= -->
+      <section id="view-alarms" class="app-view">
+        <div class="view-header-row">
+          <div>
+            <h2>Alarms & Wake-Up Clock</h2>
+            <p class="section-subtitle">Circadian wake-up alarms, focus reminders & device clock sync.</p>
+          </div>
+          <button id="btn-sync-all-alarms-view" class="btn-primary" title="Sync all alarms directly to phone clock">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Sync to Phone</span>
+          </button>
+        </div>
+
+        <div class="alarms-view-grid">
+          <!-- Create Alarm Card -->
+          <div class="settings-card alarm-create-card">
+            <div class="section-card-header">
+              <div>
+                <h3>Set New Alarm</h3>
+                <p class="card-desc">Choose alarm time, label, and repetition schedule.</p>
+              </div>
+            </div>
+
+            <div class="alarm-create-box">
+              <div class="alarm-inputs-row">
+                <div class="alarm-time-field">
+                  <label for="alarm-view-input-time">Alarm Time</label>
+                  <input type="time" id="alarm-view-input-time" class="form-input alarm-time-input" value="07:00">
+                </div>
+                <div class="alarm-label-field">
+                  <label for="alarm-view-input-label">Alarm Label</label>
+                  <input type="text" id="alarm-view-input-label" class="form-input" placeholder="e.g. Morning Wake Up, Study Sprint">
+                </div>
+              </div>
+
+              <!-- Day selector pills -->
+              <div class="alarm-days-selector">
+                <label class="field-label-sm">Repeat Days</label>
+                <div class="alarm-day-chips" id="alarm-view-day-chips">
+                  <button type="button" class="alarm-day-chip active" data-day="Mon">Mon</button>
+                  <button type="button" class="alarm-day-chip active" data-day="Tue">Tue</button>
+                  <button type="button" class="alarm-day-chip active" data-day="Wed">Wed</button>
+                  <button type="button" class="alarm-day-chip active" data-day="Thu">Thu</button>
+                  <button type="button" class="alarm-day-chip active" data-day="Fri">Fri</button>
+                  <button type="button" class="alarm-day-chip" data-day="Sat">Sat</button>
+                  <button type="button" class="alarm-day-chip" data-day="Sun">Sun</button>
+                </div>
+              </div>
+
+              <div class="alarm-create-actions">
+                <button type="button" id="btn-view-add-alarm" class="btn-primary">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Save Alarm</span>
+                </button>
+                <button type="button" id="btn-view-test-chime" class="btn-secondary" title="Test audio chime sound">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  <span>Test Chime</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Preset Alarms -->
+            <div class="alarm-presets-strip">
+              <span class="field-label-sm">Quick Add Preset</span>
+              <div class="preset-chips-row">
+                <button type="button" class="btn-chip" onclick="App.addPresetAlarm('08:30', 'Morning Wake Up', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])">
+                  <span>+ Wake Up (08:30 AM)</span>
+                </button>
+                <button type="button" class="btn-chip" onclick="App.addPresetAlarm('09:00', 'Class Launch', ['Mon','Tue','Wed','Thu','Fri'])">
+                  <span>+ Class Launch (09:00 AM)</span>
+                </button>
+                <button type="button" class="btn-chip" onclick="App.addPresetAlarm('00:30', 'Bedtime Wind Down', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])">
+                  <span>+ Bedtime (00:30 AM)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configured Alarms Card -->
+          <div class="settings-card alarms-display-card">
+            <div class="alarms-list-header">
+              <div>
+                <span class="alarms-header-title">Configured Alarms</span>
+                <p class="card-desc" style="margin: 2px 0 0 0;">Active alarms ring offline and sync to phone clock.</p>
+              </div>
+              <span id="alarms-view-count-badge" class="badge-tag">2 Active</span>
+            </div>
+            <div id="alarms-view-list-container" class="alarms-list-container">
+              <!-- Rendered via App.renderAlarmsSection() -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 5: ANALYSIS (TIME ALLOCATION & SLEEP RHYTHM) ================= -->
       <section id="view-analysis" class="app-view">
         <div class="view-header-row">
           <div>
@@ -1344,10 +1450,10 @@
   </div>
 
   <!-- JavaScript Modules -->
-  <script src="js/storage.js"></script>
-  <script src="js/scheduler.js"></script>
-  <script src="js/notifications.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/storage.js?v=2.2"></script>
+  <script src="js/scheduler.js?v=2.2"></script>
+  <script src="js/notifications.js?v=2.2"></script>
+  <script src="js/app.js?v=2.2"></script>
 
   <!-- PWA Service Worker Registration -->
   <script>

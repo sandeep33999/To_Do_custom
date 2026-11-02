@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zenrhythm-v1';
+const CACHE_NAME = 'zenrhythm-v2.2';
 const ASSETS = [
   './',
   './index.html',

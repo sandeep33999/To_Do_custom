@@ -140,7 +140,7 @@ const App = {
   },
 
   initSwipeNavigation() {
-    const viewOrder = ['dashboard', 'timetable', 'deadlines', 'analysis', 'notes', 'review', 'settings'];
+    const viewOrder = ['dashboard', 'timetable', 'deadlines', 'alarms', 'analysis', 'notes', 'review', 'settings'];
     let startX = 0;
     let startY = 0;
     let lastX = 0;
@@ -150,7 +150,7 @@ const App = {
 
     const onTouchStart = (e) => {
       if (!e.touches || e.touches.length !== 1) return;
-      // Do not intercept if user touches input, form elements, or open modal
+      // Do not intercept if user touches input, form elements, select, or open modal
       if (e.target.closest('input, textarea, select, .modal-backdrop:not(.hidden), .modal-card, .modal-dialog')) {
         isTracking = false;
         return;
@@ -169,6 +169,16 @@ const App = {
       const touch = e.touches[0];
       lastX = touch.clientX;
       lastY = touch.clientY;
+
+      const deltaX = Math.abs(lastX - startX);
+      const deltaY = Math.abs(lastY - startY);
+
+      // Lock swipe gesture horizontally and prevent Android Chrome/WebView from canceling with touchcancel
+      if (deltaX > 10 && deltaX > deltaY * 1.05) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
     };
 
     const onTouchFinish = (e) => {
@@ -183,10 +193,12 @@ const App = {
 
       const diffX = lastX - startX;
       const diffY = lastY - startY;
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
       const timeElapsed = Date.now() - startTime;
 
-      // Swipe requirements: horizontal travel >= 42px, mostly horizontal (abs(X) > 1.15 * abs(Y)), duration < 750ms
-      if (Math.abs(diffX) >= 42 && Math.abs(diffX) > Math.abs(diffY) * 1.15 && timeElapsed < 750) {
+      // Swipe requirements: horizontal travel >= 35px, primarily horizontal (absX > absY * 1.05), duration < 850ms
+      if (absX >= 35 && absX > absY * 1.05 && timeElapsed < 850) {
         const currentView = this.activeView || 'dashboard';
         const currentIndex = viewOrder.indexOf(currentView);
         if (currentIndex === -1) return;
@@ -205,9 +217,9 @@ const App = {
       }
     };
 
-    // Attach to document with passive true for optimal scroll performance
+    // Attach touchmove with { passive: false } to allow e.preventDefault() during horizontal swipes
     document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchmove', onTouchMove, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
     document.addEventListener('touchend', onTouchFinish, { passive: true });
     document.addEventListener('touchcancel', onTouchFinish, { passive: true });
   },
@@ -239,6 +251,7 @@ const App = {
     // Refresh view specific data
     if (viewName === 'timetable') this.renderTimetableSlots();
     if (viewName === 'deadlines') this.renderDeadlines();
+    if (viewName === 'alarms') this.renderAlarmsSection();
     if (viewName === 'analysis' || viewName === 'sleeplog') this.renderAnalysis();
     if (viewName === 'notes') this.renderNotes();
     if (viewName === 'review') this.renderDailyReview();
@@ -2341,94 +2354,125 @@ const App = {
   // SET ALARMS & PHONE CLOCK SECTION
   // ==========================================================================
   initAlarmsSection() {
-    // Day chips toggle
-    const dayChipsContainer = document.getElementById('alarm-day-chips');
-    if (dayChipsContainer) {
-      dayChipsContainer.addEventListener('click', (e) => {
-        const chip = e.target.closest('.alarm-day-chip');
-        if (chip) {
-          chip.classList.toggle('active');
-        }
-      });
-    }
+    // Day chips toggle for both settings and view-alarms
+    ['alarm-day-chips', 'alarm-view-day-chips'].forEach(containerId => {
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.addEventListener('click', (e) => {
+          const chip = e.target.closest('.alarm-day-chip');
+          if (chip) {
+            chip.classList.toggle('active');
+          }
+        });
+      }
+    });
 
-    // Save Alarm Button
+    // Save Alarm Button (view-alarms & settings)
+    const handleSaveAlarm = (timeId, labelId, chipsContainerId) => {
+      const timeInput = document.getElementById(timeId);
+      const labelInput = document.getElementById(labelId);
+      if (!timeInput || !timeInput.value) {
+        if (window.ChronoNotifications) ChronoNotifications.showToast('Please select an alarm time', 'warning');
+        return;
+      }
+
+      const selectedDays = [];
+      document.querySelectorAll(`#${chipsContainerId} .alarm-day-chip.active`).forEach(c => {
+        selectedDays.push(c.getAttribute('data-day'));
+      });
+
+      const newAlarm = {
+        id: 'alarm-' + Date.now(),
+        time: timeInput.value,
+        label: (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : 'Scheduled Alarm',
+        days: selectedDays.length > 0 ? selectedDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        enabled: true
+      };
+
+      ChronoStorage.addAlarm(newAlarm);
+      if (labelInput) labelInput.value = '';
+
+      if (window.ChronoNotifications) {
+        ChronoNotifications.playChime('start');
+        ChronoNotifications.showToast(`Alarm set for ${ChronoScheduler.formatTime12(newAlarm.time)}`, 'success');
+      }
+
+      this.renderAlarmsSection();
+    };
+
     const btnAddAlarm = document.getElementById('btn-add-alarm');
     if (btnAddAlarm) {
-      btnAddAlarm.addEventListener('click', () => {
-        const timeInput = document.getElementById('alarm-input-time');
-        const labelInput = document.getElementById('alarm-input-label');
-        if (!timeInput || !timeInput.value) {
-          if (window.ChronoNotifications) ChronoNotifications.showToast('Please select an alarm time', 'warning');
-          return;
-        }
-
-        const selectedDays = [];
-        document.querySelectorAll('#alarm-day-chips .alarm-day-chip.active').forEach(c => {
-          selectedDays.push(c.getAttribute('data-day'));
-        });
-
-        const newAlarm = {
-          id: 'alarm-' + Date.now(),
-          time: timeInput.value,
-          label: (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : 'Scheduled Alarm',
-          days: selectedDays.length > 0 ? selectedDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          enabled: true
-        };
-
-        ChronoStorage.addAlarm(newAlarm);
-        if (labelInput) labelInput.value = '';
-
-        if (window.ChronoNotifications) {
-          ChronoNotifications.playChime('start');
-          ChronoNotifications.showToast(`Alarm set for ${ChronoScheduler.formatTime12(newAlarm.time)}`, 'success');
-        }
-
-        this.renderAlarmsSection();
-      });
+      btnAddAlarm.addEventListener('click', () => handleSaveAlarm('alarm-input-time', 'alarm-input-label', 'alarm-day-chips'));
     }
 
-    // Test Chime Button
-    const btnTestChime = document.getElementById('btn-test-chime');
-    if (btnTestChime) {
-      btnTestChime.addEventListener('click', () => {
-        this.testAlarmSound('Test Alarm');
-      });
+    const btnViewAddAlarm = document.getElementById('btn-view-add-alarm');
+    if (btnViewAddAlarm) {
+      btnViewAddAlarm.addEventListener('click', () => handleSaveAlarm('alarm-view-input-time', 'alarm-view-input-label', 'alarm-view-day-chips'));
     }
 
-    // Sync to Phone Button
-    const btnSyncAllAlarms = document.getElementById('btn-sync-all-alarms');
-    if (btnSyncAllAlarms) {
-      btnSyncAllAlarms.addEventListener('click', () => {
-        this.syncAllAlarmsToPhone();
-      });
-    }
+    // Test Chime Buttons
+    ['btn-test-chime', 'btn-view-test-chime'].forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.addEventListener('click', () => this.testAlarmSound('Test Chime'));
+      }
+    });
+
+    // Sync to Phone Buttons
+    ['btn-sync-all-alarms', 'btn-sync-all-alarms-view'].forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.addEventListener('click', () => this.syncAllAlarmsToPhone());
+      }
+    });
 
     this.renderAlarmsSection();
   },
 
-  renderAlarmsSection() {
-    const container = document.getElementById('alarms-list-container');
-    const countBadge = document.getElementById('alarms-count-badge');
-    if (!container) return;
+  addPresetAlarm(time, label, days) {
+    const newAlarm = {
+      id: 'alarm-' + Date.now(),
+      time,
+      label,
+      days: days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      enabled: true
+    };
+    ChronoStorage.addAlarm(newAlarm);
+    if (window.ChronoNotifications) {
+      ChronoNotifications.playChime('start');
+      ChronoNotifications.showToast(`Alarm "${label}" added for ${ChronoScheduler.formatTime12(time)}`, 'success');
+    }
+    this.renderAlarmsSection();
+  },
 
+  renderAlarmsSection() {
     const alarms = ChronoStorage.getAlarms() || [];
     const activeCount = alarms.filter(a => a.enabled).length;
 
-    if (countBadge) {
-      countBadge.textContent = `${activeCount} Active`;
-    }
+    // Update count badges
+    ['alarms-count-badge', 'alarms-view-count-badge'].forEach(badgeId => {
+      const badge = document.getElementById(badgeId);
+      if (badge) badge.textContent = `${activeCount} Active`;
+    });
+
+    const targetContainers = [
+      document.getElementById('alarms-list-container'),
+      document.getElementById('alarms-view-list-container')
+    ].filter(Boolean);
+
+    if (targetContainers.length === 0) return;
 
     if (alarms.length === 0) {
-      container.innerHTML = `
+      const emptyHtml = `
         <div class="empty-state-box">
-          <p>No alarms configured yet. Use the form above to add your daily wake-up or study alarms.</p>
+          <p>No alarms configured yet. Choose a preset or set your daily wake-up rhythm above.</p>
         </div>
       `;
+      targetContainers.forEach(c => c.innerHTML = emptyHtml);
       return;
     }
 
-    container.innerHTML = alarms.map(alarm => {
+    const html = alarms.map(alarm => {
       const daysText = (alarm.days && alarm.days.length === 7) ? 'Every day' : (alarm.days ? alarm.days.join(', ') : 'Daily');
       const timeFormatted = ChronoScheduler.formatTime12(alarm.time);
 
@@ -2457,6 +2501,8 @@ const App = {
         </div>
       `;
     }).join('');
+
+    targetContainers.forEach(c => c.innerHTML = html);
   },
 
   toggleAlarm(alarmId, enabled) {
