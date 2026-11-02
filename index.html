@@ -151,7 +151,7 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
           <span>Missions</span>
-          <span class="badge-counter" id="badge-deadline-count">0</span>
+          <span class="badge-counter hidden" id="badge-deadline-count" style="display: none;">0</span>
         </button>
 
         <button class="nav-tab" data-view="analysis">
@@ -331,12 +331,12 @@
 
         </div>
 
-        <!-- Today's Dynamic Schedule Timeline -->
+        <!-- Today's Dynamic Schedule Timeline Roadmap -->
         <div class="timeline-section-card">
           <div class="section-card-header">
             <div class="header-title-group">
-              <h3>Today's Adaptive Timeline</h3>
-              <span id="timeline-date-label" class="header-sub">Auto-rescheduled around your slots</span>
+              <h3>Today's Roadmap</h3>
+              <span id="timeline-date-label" class="header-sub">Daily story & milestones</span>
             </div>
 
             <div class="header-action-group">
@@ -347,6 +347,11 @@
             </div>
           </div>
 
+          <!-- Roadmap Journey Progress Bar -->
+          <div id="timeline-roadmap-meter" class="timeline-roadmap-meter">
+            <!-- Injected via JS -->
+          </div>
+
           <!-- 5.1: Timeline Filter Pills (All / Pending / Done / Skipped) -->
           <div class="timeline-filter-bar">
             <button class="filter-chip active" data-timeline-filter="all">All</button>
@@ -355,7 +360,7 @@
             <button class="filter-chip" data-timeline-filter="skipped">Skipped</button>
           </div>
 
-          <!-- Timeline items list -->
+          <!-- Timeline items list (Roadmap Journey) -->
           <div id="today-timeline-list" class="timeline-items-list">
             <!-- Rendered by app.js -->
           </div>
@@ -368,11 +373,11 @@
         <div class="view-header-row">
           <div>
             <h2>Weekly Timetable & Slots</h2>
-            <p class="section-subtitle">Manage recurring class slots, fixed lab blocks, study sessions, and mess timings.</p>
+            <p class="section-subtitle">Recurring classes, labs & study slots.</p>
           </div>
           <button id="btn-add-slot-modal" class="btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>New Slot / Activity</span>
+            <span>New Slot</span>
           </button>
         </div>
 
@@ -397,8 +402,8 @@
       <section id="view-deadlines" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Missions & Examinations</h2>
-            <p class="section-subtitle">High-impact deliverables ordered chronologically by due date & time.</p>
+            <h2>Missions & Targets</h2>
+            <p class="section-subtitle">Deliverables & exam milestones.</p>
           </div>
           <button id="btn-add-deadline-modal" class="btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -415,8 +420,8 @@
       <section id="view-analysis" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Life Rhythm & Productivity Analysis</h2>
-            <p class="section-subtitle">24-hour time allocation, deep work efficiency, buffer time tracking, and circadian health.</p>
+            <h2>Rhythm & Productivity</h2>
+            <p class="section-subtitle">24-hour balance & rest cycles.</p>
           </div>
           <button id="btn-open-sleep-modal-2" class="btn-secondary">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
@@ -655,8 +660,8 @@
       <section id="view-notes" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Quick Notes & Scratchpad</h2>
-            <p class="section-subtitle">Capture exam formulas, ideas, priority memos, and lecture summaries.</p>
+            <h2>Quick Notes</h2>
+            <p class="section-subtitle">Formulas, memos & quick ideas.</p>
           </div>
           <button id="btn-add-note-modal" class="btn-primary">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -689,8 +694,8 @@
       <section id="view-review" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Daily Productivity & Habit Review</h2>
-            <p class="section-subtitle">Evaluate your daily execution, track completion, and record insights.</p>
+            <h2>Daily Reflection</h2>
+            <p class="section-subtitle">Track completion & record insights.</p>
           </div>
         </div>
 
@@ -716,9 +721,9 @@
 
           <!-- 2.1: Journal & Reflection with Save Button directly adjacent -->
           <div class="review-reflection-card">
-            <h3>Today's Journal & Reflection</h3>
-            <p class="card-desc">Write down what went well today, what caused friction, and notes for tomorrow's schedule.</p>
-            <textarea id="review-notes-input" class="form-textarea" rows="4" placeholder="Example: Finished SQL assignment on time. Tomorrow wake up early for Networks quiz..."></textarea>
+            <h3>Today's Reflection</h3>
+            <p class="card-desc">What went well? What caused friction?</p>
+            <textarea id="review-notes-input" class="form-textarea" rows="4" placeholder="Finished assignments, reviewed lectures, notes for tomorrow..."></textarea>
             
             <div class="reflection-save-row">
               <button id="btn-save-review" class="btn-primary" type="button">
@@ -732,7 +737,7 @@
         <!-- 2.1: Saved Reflection & Journal History List with Timestamps and Delete Option -->
         <div class="timeline-section-card" style="margin-top: 20px;">
           <div class="section-card-header">
-            <h3>Saved Journal & Reflection History</h3>
+            <h3>Saved Reflections</h3>
             <span id="journal-count-badge" class="header-sub">0 reflections recorded</span>
           </div>
           <div id="saved-journal-entries-list" class="journal-entries-list">
@@ -742,7 +747,7 @@
 
         <div class="timeline-section-card" style="margin-top: 20px;">
           <div class="section-card-header">
-            <h3>Task Breakdown for Today</h3>
+            <h3>Task Breakdown</h3>
           </div>
           <div id="review-tasks-breakdown" class="review-breakdown-list">
             <!-- Populated by JS -->
@@ -754,8 +759,8 @@
       <section id="view-settings" class="app-view">
         <div class="view-header-row">
           <div>
-            <h2>Settings & Data Safety</h2>
-            <p class="section-subtitle">Configure your personal preferences, sleep standards, alerts, and backup your schedule.</p>
+            <h2>Settings</h2>
+            <p class="section-subtitle">Preferences, alarms & data backup.</p>
           </div>
         </div>
 

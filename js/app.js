@@ -55,7 +55,10 @@ const App = {
       this.invalidateScheduleCache();
       this.refreshAllViews();
     });
-    window.addEventListener('chronoflow:deadlines_updated', () => this.renderDeadlines());
+    window.addEventListener('chronoflow:deadlines_updated', () => {
+      this.renderDeadlines();
+      this.renderSettingsArchive();
+    });
     window.addEventListener('chronoflow:sleeplogs_updated', () => this.renderAnalysis());
     window.addEventListener('chronoflow:journal_updated', () => {
       this.renderDailyReview();
@@ -572,6 +575,7 @@ const App = {
   renderTodayTimeline() {
     const container = document.getElementById('today-timeline-list');
     const dateLabel = document.getElementById('timeline-date-label');
+    const meterEl = document.getElementById('timeline-roadmap-meter');
     if (!container) return;
 
     const todayStr = ChronoScheduler.getTodayDateStr();
@@ -581,8 +585,34 @@ const App = {
     const currentMins = now.getHours() * 60 + now.getMinutes();
 
     if (dateLabel) {
-      const options = { weekday: 'long', month: 'long', day: 'numeric' };
-      dateLabel.textContent = `${now.toLocaleDateString(undefined, options)} • Adaptive dynamic timeline`;
+      const options = { weekday: 'long', month: 'short', day: 'numeric' };
+      dateLabel.textContent = `${now.toLocaleDateString(undefined, options)} • Daily story & milestones`;
+    }
+
+    const allItems = resolved.items || [];
+    const totalStops = allItems.length;
+    const completedStops = allItems.filter(t => t.isCompleted).length;
+    const progressPct = totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0;
+
+    // Render Roadmap Story Journey Progress Meter
+    if (meterEl) {
+      if (totalStops > 0) {
+        meterEl.classList.remove('hidden');
+        meterEl.innerHTML = `
+          <div class="roadmap-meter-header">
+            <span class="roadmap-meter-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Today's Roadmap
+            </span>
+            <span class="roadmap-meter-stat">${completedStops} of ${totalStops} stops completed (${progressPct}%)</span>
+          </div>
+          <div class="roadmap-progress-track">
+            <div class="roadmap-progress-fill" style="width: ${progressPct}%;"></div>
+          </div>
+        `;
+      } else {
+        meterEl.classList.add('hidden');
+      }
     }
 
     if (!resolved.items || resolved.items.length === 0) {
@@ -613,29 +643,56 @@ const App = {
       return;
     }
 
-    container.innerHTML = filteredItems.map(task => {
+    container.innerHTML = filteredItems.map((task, idx) => {
       const isActive = (task.startMins <= currentMins && currentMins < task.endMins && !task.isSkipped);
 
-      let rowClasses = 'timeline-row';
+      let rowClasses = 'timeline-row roadmap-item';
       if (isActive) rowClasses += ' is-active-task';
       if (task.isCompleted) rowClasses += ' is-completed-task';
       if (task.isSkipped) rowClasses += ' is-skipped-task';
 
+      // Narrative Story Chapter based on schedule timing
+      const startHour = parseInt(task.startTime.split(':')[0], 10);
+      let chapter = 'Morning Launch';
+      if (startHour >= 12 && startHour < 17) chapter = 'Midday Focus';
+      else if (startHour >= 17 && startHour < 21) chapter = 'Evening Stride';
+      else if (startHour >= 21 || startHour < 5) chapter = 'Rest & Recovery';
+
+      let dotClass = 'dot-pending';
+      let dotIcon = `<span style="font-size: 0.6rem;">${idx + 1}</span>`;
+      if (task.isCompleted) {
+        dotClass = 'dot-completed';
+        dotIcon = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0D0B" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+      } else if (isActive) {
+        dotClass = 'dot-active';
+        dotIcon = `<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary);"></span>`;
+      }
+
       return `
         <div class="${rowClasses}" data-task-id="${task.id}">
+          <div class="roadmap-track-col">
+            <div class="roadmap-dot ${dotClass}" title="Stop ${idx + 1} • ${chapter}">
+              ${dotIcon}
+            </div>
+            <div class="roadmap-line"></div>
+          </div>
+
           <div class="timeline-time-col">
+            <span class="roadmap-stop-badge">Stop ${idx + 1}</span>
             <span class="time-start">${ChronoScheduler.formatTime12(task.startTime)}</span>
-            <span class="time-duration">${task.duration} mins</span>
+            <span class="time-duration">${task.duration}m</span>
           </div>
 
           <div class="timeline-body-col">
+            <span class="story-chapter-tag">${chapter}</span>
             <div class="timeline-title-row">
               <span class="timeline-title">${task.title}</span>
               <span class="category-pill pill-${task.category || 'study'}">${task.category || 'Task'}</span>
               ${task.isFixed ? '<span class="meta-badge-fixed">Fixed</span>' : '<span class="meta-badge-flex">Flexible</span>'}
+              ${isActive ? '<span class="reschedule-tag" style="background: rgba(185, 229, 76, 0.16); color: var(--accent-primary); border-color: var(--accent-primary);">Current Stop</span>' : ''}
               ${task.isRescheduled ? `<span class="reschedule-tag" title="${task.rescheduleReason || 'Rescheduled'}">${task.rescheduleReason || 'Shifted'}</span>` : ''}
               ${task.isEmergency ? '<span class="reschedule-tag text-danger">Emergency Break</span>' : ''}
-              ${task.isSkipped ? '<span class="reschedule-tag text-warning">Skipped Today</span>' : ''}
+              ${task.isSkipped ? '<span class="reschedule-tag text-warning">Skipped</span>' : ''}
             </div>
             ${task.notes ? `<div class="timeline-notes">${task.notes}</div>` : ''}
           </div>
@@ -645,7 +702,7 @@ const App = {
             <button class="btn-icon-sm ${task.isCompleted ? 'btn-check-active' : ''}" 
                     onclick="App.toggleTaskComplete('${task.id}')" 
                     title="${task.isCompleted ? 'Mark incomplete' : 'Mark completed'}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </button>
@@ -654,7 +711,7 @@ const App = {
             <button class="btn-icon-sm" 
                     onclick="App.toggleSkipTask('${task.id}', ${task.isSkipped})" 
                     title="${task.isSkipped ? 'Unskip task' : 'Skip for today'}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 4 15 12 5 20 5 4"/>
                 <line x1="19" y1="5" x2="19" y2="19"/>
               </svg>
@@ -664,7 +721,7 @@ const App = {
             <button class="btn-icon-sm" 
                     onclick="App.promptDeleteTask('${task.id}', '${task.title.replace(/'/g, "\\'")}')" 
                     title="Delete today or permanently">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
               </svg>
@@ -725,8 +782,14 @@ const App = {
           </div>
 
           <div class="slot-bottom-row">
-            <button class="btn-text" onclick="App.editSlot('${slot.id}')">Edit Slot</button>
-            <button class="btn-text text-danger" onclick="App.deleteSlotPermanently('${slot.id}')">Delete</button>
+            <button class="btn-text" onclick="App.editSlot('${slot.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Edit Slot</span>
+            </button>
+            <button class="btn-text text-danger" onclick="App.deleteSlotPermanently('${slot.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>Delete</span>
+            </button>
           </div>
         </div>
       `;
@@ -742,7 +805,17 @@ const App = {
     const deadlines = ChronoStorage.getDeadlines();
 
     const activeDeadlines = deadlines.filter(d => !d.completed);
-    if (badgeCounter) badgeCounter.textContent = String(activeDeadlines.length);
+    if (badgeCounter) {
+      if (activeDeadlines.length > 0) {
+        badgeCounter.textContent = String(activeDeadlines.length);
+        badgeCounter.classList.remove('hidden');
+        badgeCounter.style.display = 'inline-flex';
+      } else {
+        badgeCounter.textContent = '0';
+        badgeCounter.classList.add('hidden');
+        badgeCounter.style.display = 'none';
+      }
+    }
 
     if (!container) return;
 
@@ -802,10 +875,17 @@ const App = {
           <!-- Requirement 1(a): Edit option between Mark Completed and Delete -->
           <div class="slot-bottom-row">
             <button class="btn-action ${dl.completed ? 'btn-action-extend' : 'btn-action-done'}" onclick="App.toggleDeadlineComplete('${dl.id}')">
-              ${dl.completed ? 'Mark Incomplete' : 'Mark Completed'}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>${dl.completed ? 'Mark Incomplete' : 'Mark Completed'}</span>
             </button>
-            <button class="btn-text" onclick="App.editDeadline('${dl.id}')">Edit</button>
-            <button class="btn-text text-danger" onclick="App.deleteDeadline('${dl.id}')">Delete</button>
+            <button class="btn-text" onclick="App.editDeadline('${dl.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Edit</span>
+            </button>
+            <button class="btn-text text-danger" onclick="App.deleteDeadline('${dl.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>Delete</span>
+            </button>
           </div>
         </div>
       `;
@@ -2546,9 +2626,11 @@ const App = {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </span>
               <div>
-                <strong class="archive-item-title">${t.title || 'Untitled Task'}</strong>
+                <strong class="archive-item-title">${t.title || (t.isMission ? 'Untitled Mission' : 'Untitled Task')}</strong>
                 <div class="archive-item-meta">
-                  <span class="category-pill pill-${t.category || 'study'}">${(t.category || 'task').toUpperCase()}</span>
+                  <span class="category-pill ${t.isMission ? (t.category === 'exam' ? 'pill-exam' : 'pill-study') : `pill-${t.category || 'study'}`}">
+                    ${t.isMission ? (t.category === 'exam' ? 'EXAM' : 'MISSION') : (t.category || 'TASK').toUpperCase()}
+                  </span>
                   <span>Date: ${dateStr}</span>
                   ${t.duration ? `<span>• ${t.duration}m</span>` : ''}
                 </div>

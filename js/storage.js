@@ -377,7 +377,14 @@ const ChronoStorage = {
 
   toggleDeadlineComplete(id) {
     const list = this.getDeadlines().map(dl => {
-      if (dl.id === id) return { ...dl, completed: !dl.completed };
+      if (dl.id === id) {
+        const nextState = !dl.completed;
+        return { 
+          ...dl, 
+          completed: nextState,
+          completedAt: nextState ? new Date().toISOString() : null
+        };
+      }
       return dl;
     });
     this.saveDeadlines(list);
@@ -644,8 +651,27 @@ const ChronoStorage = {
               title: task.title,
               category: task.category || 'study',
               duration: task.duration || 60,
-              startTime: task.startTime || '09:00'
+              startTime: task.startTime || '09:00',
+              isMission: false
             });
+          });
+        }
+      });
+
+      // Also include completed Missions (Exams & Deadlines)
+      const allDeadlines = this.getDeadlines();
+      allDeadlines.forEach(dl => {
+        if (dl.completed) {
+          const compDate = dl.completedAt ? dl.completedAt.split('T')[0] : (dl.dueDate || ChronoScheduler.getTodayDateStr());
+          archive.push({
+            date: compDate,
+            taskId: dl.id,
+            title: dl.title,
+            category: dl.type === 'exam' ? 'exam' : 'study',
+            duration: null,
+            startTime: dl.dueTime || '23:59',
+            isMission: true,
+            completedAt: dl.completedAt || new Date().toISOString()
           });
         }
       });
